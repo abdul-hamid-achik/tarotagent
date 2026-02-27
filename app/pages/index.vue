@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import type { SpreadType } from '~/types/tarot'
 
+useSeoMeta({
+  title: 'Tarot Agent — Free AI Tarot Readings Online',
+  description:
+    'Get a free AI-powered tarot reading. Choose from Single Card, Yes/No, Three Card, Love, Career, or Celtic Cross spreads. Beautiful pixel-art Major Arcana with streaming interpretations by Claude AI.',
+})
+
 const {
   question,
   spreadType,
