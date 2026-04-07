@@ -38,27 +38,29 @@ function handleNewReading() {
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-10">
-    <!-- Hero section -->
-    <section class="text-center pt-8 pb-4">
+  <div class="flex flex-col items-center gap-6 sm:gap-10">
+    <div class="grain-overlay"></div>
+
+    <section class="text-center pt-6 pb-2 sm:pt-8 sm:pb-4">
       <div class="animate-float inline-block mb-6">
-        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-gold-500/20 to-mystic-500/20 border border-gold-500/30 flex items-center justify-center">
-          <span class="text-3xl text-gold-400">&#9734;</span>
+        <div
+          class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-gold-500/20 to-mystic-500/20 border border-gold-500/30 flex items-center justify-center shadow-lg shadow-gold-500/10"
+        >
+          <span class="text-4xl sm:text-5xl text-gold-400">&#9734;</span>
         </div>
       </div>
-      <h2 class="font-[family-name:var(--font-family-display)] text-3xl sm:text-4xl font-semibold text-mystic-100 mb-3">
+      <h2
+        class="font-[family-name:var(--font-family-display)] text-3xl sm:text-4xl font-semibold text-mystic-100 mb-3 tracking-wide"
+      >
         Consult the Cards
       </h2>
-      <p class="text-mystic-300 max-w-md mx-auto text-sm sm:text-base">
-        An AI-powered tarot reading experience. Focus your mind, ask your question, and let the cards reveal their wisdom.
+      <p class="text-mystic-300 max-w-md mx-auto text-sm sm:text-base leading-relaxed">
+        An AI-powered tarot reading experience. Focus your mind, ask your question, and let the
+        cards reveal their wisdom.
       </p>
     </section>
 
-    <!-- Input section (hidden once reading is active) -->
-    <section
-      v-if="!hasReading"
-      class="w-full max-w-lg flex flex-col gap-6"
-    >
+    <section v-if="!hasReading" class="w-full max-w-lg flex flex-col gap-6">
       <UTextarea
         v-model="question"
         placeholder="What wisdom do you seek?"
@@ -70,14 +72,18 @@ function handleNewReading() {
 
       <div class="flex flex-col items-center gap-4">
         <div class="flex flex-col items-center gap-2">
-          <span class="text-xs text-mystic-400 font-[family-name:var(--font-family-display)] uppercase tracking-widest">
+          <span
+            class="text-xs text-mystic-400 font-[family-name:var(--font-family-display)] uppercase tracking-widest"
+          >
             Spread
           </span>
-          <div class="flex gap-2">
+          <div
+            class="flex gap-2 overflow-x-auto pb-2 px-1 -mx-1 scrollbar-hide w-[calc(100%+8px)] sm:w-auto sm:overflow-visible justify-center"
+          >
             <button
               v-for="option in spreadOptions"
               :key="option.value"
-              class="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+              class="cursor-pointer px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap"
               :class="
                 spreadType === option.value
                   ? 'bg-gold-500 text-mystic-900 shadow-lg shadow-gold-500/25 scale-105'
@@ -104,33 +110,19 @@ function handleNewReading() {
         </UButton>
       </div>
 
-      <p
-        v-if="error"
-        class="text-red-400 text-sm text-center"
-      >
+      <p v-if="error" class="text-red-400 text-sm text-center">
         {{ error }}
       </p>
     </section>
 
-    <!-- Reading section -->
     <template v-if="hasReading">
-      <section class="w-full flex flex-col items-center gap-10">
-        <!-- Spread display -->
-        <TarotSpread
-          :cards="cards"
-          :spread-type="spreadType"
-          :revealed="isRevealed"
-        />
+      <section class="w-full flex flex-col items-center gap-8 sm:gap-10">
+        <TarotSpread :cards="cards" :spread-type="spreadType" :revealed="isRevealed" />
 
-        <!-- Reading text -->
         <div class="w-full max-w-2xl">
-          <ReadingDisplay
-            :text="readingText"
-            :is-streaming="isStreaming"
-          />
+          <ReadingDisplay :text="readingText" :is-streaming="isStreaming" />
         </div>
 
-        <!-- New reading button -->
         <UButton
           v-if="!isStreaming && readingText"
           variant="outline"

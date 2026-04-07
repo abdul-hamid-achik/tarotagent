@@ -87,10 +87,7 @@ export async function performReading(
 
       try {
         for await (const event of anthropicStream) {
-          if (
-            event.type === 'content_block_delta' &&
-            event.delta.type === 'text_delta'
-          ) {
+          if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
             const textEvent = `data: ${JSON.stringify({ type: 'text', content: event.delta.text })}\n\n`
             controller.enqueue(encoder.encode(textEvent))
           }

@@ -50,7 +50,7 @@ export const spreadDefinitions: Record<SpreadType, SpreadDefinition> = {
     description: 'Relationship dynamics and potential',
     positions: ['You', 'The Other', 'The Connection', 'The Challenge', 'The Potential'],
     readingGuide:
-      'Read the first two cards as mirrors of each person\'s energy. The Connection card reveals what binds or stands between them. The Challenge is the friction point — not necessarily negative, but where growth is required. The Potential shows what this relationship can become if the challenge is met honestly. Be compassionate but truthful; never promise outcomes in matters of the heart.',
+      "Read the first two cards as mirrors of each person's energy. The Connection card reveals what binds or stands between them. The Challenge is the friction point — not necessarily negative, but where growth is required. The Potential shows what this relationship can become if the challenge is met honestly. Be compassionate but truthful; never promise outcomes in matters of the heart.",
   },
   career: {
     name: 'Career Path',
@@ -81,7 +81,7 @@ export const spreadDefinitions: Record<SpreadType, SpreadDefinition> = {
       'Outcome',
     ],
     readingGuide:
-      'This is the most complete spread. Read it in two phases: First, the cross (cards 1-6) tells the story — Present and Challenge are the core tension, Foundation is the root cause, Recent Past is what\'s fading, Crown is the conscious goal, Near Future is the next chapter. Then the staff (cards 7-10) reveals the deeper truth — Self is the querent\'s inner state, Environment is external forces, Hopes & Fears (often the same thing) reveals what drives them, and Outcome is the culmination. Weave both phases into one unified narrative.',
+      "This is the most complete spread. Read it in two phases: First, the cross (cards 1-6) tells the story — Present and Challenge are the core tension, Foundation is the root cause, Recent Past is what's fading, Crown is the conscious goal, Near Future is the next chapter. Then the staff (cards 7-10) reveals the deeper truth — Self is the querent's inner state, Environment is external forces, Hopes & Fears (often the same thing) reveals what drives them, and Outcome is the culmination. Weave both phases into one unified narrative.",
   },
 }
 
@@ -279,7 +279,7 @@ export const majorArcana: TarotCard[] = [
     reversedMeaning:
       'Reversed, Temperance warns of excess, imbalance, or a lack of harmony. You may be overindulging, rushing into things, or struggling to find your center. It can indicate conflict between different areas of your life or a need to realign your priorities.',
     description:
-      'A winged angel stands with one foot on land and one in water, pouring liquid between two golden cups. A path winds from the water toward distant mountains where a golden crown floats above twin peaks. Irises bloom at the water\'s edge.',
+      "A winged angel stands with one foot on land and one in water, pouring liquid between two golden cups. A path winds from the water toward distant mountains where a golden crown floats above twin peaks. Irises bloom at the water's edge.",
   },
   {
     id: 15,
@@ -292,7 +292,7 @@ export const majorArcana: TarotCard[] = [
     reversedMeaning:
       'Reversed, The Devil signals a release from bondage, breaking free of addictions, or reclaiming your power. You are beginning to see through illusions and recognize the self-imposed limitations that have held you back. Liberation and personal empowerment are at hand.',
     description:
-      'A horned, bat-winged figure crouches on a dark pedestal to which a naked man and woman are loosely chained. Both figures have small horns and tails. An inverted pentagram blazes above the devil\'s head.',
+      "A horned, bat-winged figure crouches on a dark pedestal to which a naked man and woman are loosely chained. Both figures have small horns and tails. An inverted pentagram blazes above the devil's head.",
   },
   {
     id: 16,
