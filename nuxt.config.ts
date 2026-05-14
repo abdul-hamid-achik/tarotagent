@@ -1,3 +1,12 @@
+function normalizeSiteUrl(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed || /^https?:\/\//i.test(trimmed)) {
+    return trimmed
+  }
+
+  return `https://${trimmed}`
+}
+
 export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@nuxt/eslint'],
 
@@ -17,7 +26,9 @@ export default defineNuxtConfig({
     redisRestUrl: '',
     redisRestToken: '',
     public: {
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://tarotagent.app',
+      siteUrl: normalizeSiteUrl(
+        process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://tarotagent.app',
+      ),
       siteName: process.env.NUXT_PUBLIC_SITE_NAME || process.env.SITE_NAME || 'Tarot Agent',
       emailEnabled: false,
     },

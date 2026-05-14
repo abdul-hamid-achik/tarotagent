@@ -22,6 +22,9 @@ describe('runtime environment helpers', () => {
     resendFromEmail: process.env.RESEND_FROM_EMAIL,
     upstashRedisRestUrl: process.env.UPSTASH_REDIS_REST_URL,
     upstashRedisRestToken: process.env.UPSTASH_REDIS_REST_TOKEN,
+    kvRestApiUrl: process.env.KV_REST_API_URL,
+    kvRestApiToken: process.env.KV_REST_API_TOKEN,
+    kvUrl: process.env.KV_URL,
     siteUrl: process.env.SITE_URL,
     siteName: process.env.SITE_NAME,
   }
@@ -36,6 +39,9 @@ describe('runtime environment helpers', () => {
     process.env.RESEND_FROM_EMAIL = 'Tarot Agent <no-reply@example.com>'
     process.env.UPSTASH_REDIS_REST_URL = 'https://runtime-redis.upstash.io'
     process.env.UPSTASH_REDIS_REST_TOKEN = 'runtime-redis-token'
+    delete process.env.KV_REST_API_URL
+    delete process.env.KV_REST_API_TOKEN
+    delete process.env.KV_URL
     process.env.SITE_URL = 'https://example.com'
     process.env.SITE_NAME = 'Runtime Tarot'
   })
@@ -58,6 +64,15 @@ describe('runtime environment helpers', () => {
 
     if (originalEnv.upstashRedisRestToken === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN
     else process.env.UPSTASH_REDIS_REST_TOKEN = originalEnv.upstashRedisRestToken
+
+    if (originalEnv.kvRestApiUrl === undefined) delete process.env.KV_REST_API_URL
+    else process.env.KV_REST_API_URL = originalEnv.kvRestApiUrl
+
+    if (originalEnv.kvRestApiToken === undefined) delete process.env.KV_REST_API_TOKEN
+    else process.env.KV_REST_API_TOKEN = originalEnv.kvRestApiToken
+
+    if (originalEnv.kvUrl === undefined) delete process.env.KV_URL
+    else process.env.KV_URL = originalEnv.kvUrl
 
     if (originalEnv.siteUrl === undefined) delete process.env.SITE_URL
     else process.env.SITE_URL = originalEnv.siteUrl
@@ -97,5 +112,28 @@ describe('runtime environment helpers', () => {
       fromEmail: 'Tarot Agent <no-reply@example.com>',
     })
     expect(isEmailDeliveryConfigured()).toBe(true)
+  })
+
+  it('derives Redis REST config from Vercel KV_URL when REST env vars are absent', async () => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+    delete process.env.KV_REST_API_URL
+    delete process.env.KV_REST_API_TOKEN
+    process.env.KV_URL = 'rediss://default:runtime-kv-token@chosen-vercel-kv.upstash.io:6379'
+
+    const { requireRedisConfig } = await import('../../server/utils/env')
+
+    expect(requireRedisConfig()).toEqual({
+      url: 'https://chosen-vercel-kv.upstash.io',
+      token: 'runtime-kv-token',
+    })
+  })
+
+  it('normalizes bare production site domains', async () => {
+    process.env.SITE_URL = 'tarotagent.app'
+
+    const { getValidatedRuntimeConfig } = await import('../../server/utils/env')
+
+    expect(getValidatedRuntimeConfig().public.siteUrl).toBe('https://tarotagent.app')
   })
 })

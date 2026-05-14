@@ -2,7 +2,7 @@ import type { H3Event } from 'h3'
 import { createError } from 'h3'
 import { z } from 'zod'
 
-const runtimeConfigSchema = z.object({
+const rawRuntimeConfigSchema = z.object({
   databaseUrl: z.string(),
   anthropicApiKey: z.string(),
   resendApiKey: z.string(),
@@ -10,31 +10,70 @@ const runtimeConfigSchema = z.object({
   redisRestUrl: z.string(),
   redisRestToken: z.string(),
   public: z.object({
-    siteUrl: z.url(),
+    siteUrl: z.string().trim().min(1),
     siteName: z.string().trim().min(1),
     emailEnabled: z.boolean(),
   }),
 })
 
+const runtimeConfigSchema = rawRuntimeConfigSchema.extend({
+  public: rawRuntimeConfigSchema.shape.public.extend({
+    siteUrl: z.url(),
+  }),
+})
+
 export type AppRuntimeConfig = z.infer<typeof runtimeConfigSchema>
+type RawRuntimeConfig = z.infer<typeof rawRuntimeConfigSchema>
 
 function firstNonEmpty(...values: Array<string | undefined | null>): string {
   return values.find((value) => value?.trim())?.trim() ?? ''
 }
 
-function resolveRuntimeConfig(config: AppRuntimeConfig): AppRuntimeConfig {
+function redisRestConfigFromKvUrl(value: string | undefined): { url: string; token: string } {
+  if (!value?.trim()) {
+    return { url: '', token: '' }
+  }
+
+  try {
+    const redisUrl = new URL(value)
+    if (!['redis:', 'rediss:'].includes(redisUrl.protocol)) {
+      return { url: '', token: '' }
+    }
+
+    return {
+      url: redisUrl.hostname ? `https://${redisUrl.hostname}` : '',
+      token: redisUrl.password ? decodeURIComponent(redisUrl.password) : '',
+    }
+  } catch {
+    return { url: '', token: '' }
+  }
+}
+
+function normalizeSiteUrl(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed || /^https?:\/\//i.test(trimmed)) {
+    return trimmed
+  }
+
+  return `https://${trimmed}`
+}
+
+function resolveRuntimeConfig(config: RawRuntimeConfig): AppRuntimeConfig {
   const databaseUrl = firstNonEmpty(process.env.DATABASE_URL, config.databaseUrl)
   const anthropicApiKey = firstNonEmpty(process.env.ANTHROPIC_API_KEY, config.anthropicApiKey)
   const resendApiKey = firstNonEmpty(process.env.RESEND_API_KEY, config.resendApiKey)
   const resendFromEmail = firstNonEmpty(process.env.RESEND_FROM_EMAIL, config.resendFromEmail)
+  const kvUrlRedisConfig = redisRestConfigFromKvUrl(process.env.KV_URL)
   const redisRestUrl = firstNonEmpty(
     process.env.UPSTASH_REDIS_REST_URL,
     process.env.KV_REST_API_URL,
+    kvUrlRedisConfig.url,
     config.redisRestUrl,
   )
   const redisRestToken = firstNonEmpty(
     process.env.UPSTASH_REDIS_REST_TOKEN,
     process.env.KV_REST_API_TOKEN,
+    kvUrlRedisConfig.token,
     config.redisRestToken,
   )
 
@@ -48,7 +87,7 @@ function resolveRuntimeConfig(config: AppRuntimeConfig): AppRuntimeConfig {
     redisRestToken,
     public: {
       ...config.public,
-      siteUrl: firstNonEmpty(process.env.SITE_URL, config.public.siteUrl),
+      siteUrl: normalizeSiteUrl(firstNonEmpty(process.env.SITE_URL, config.public.siteUrl)),
       siteName: firstNonEmpty(process.env.SITE_NAME, config.public.siteName),
       emailEnabled: Boolean(resendApiKey && resendFromEmail) || isTestMode(),
     },
@@ -57,7 +96,9 @@ function resolveRuntimeConfig(config: AppRuntimeConfig): AppRuntimeConfig {
 
 export function getValidatedRuntimeConfig(event?: H3Event): AppRuntimeConfig {
   const runtimeConfig = event ? useRuntimeConfig(event) : useRuntimeConfig()
-  return runtimeConfigSchema.parse(resolveRuntimeConfig(runtimeConfigSchema.parse(runtimeConfig)))
+  return runtimeConfigSchema.parse(
+    resolveRuntimeConfig(rawRuntimeConfigSchema.parse(runtimeConfig)),
+  )
 }
 
 export function hasDatabase(event?: H3Event): boolean {
