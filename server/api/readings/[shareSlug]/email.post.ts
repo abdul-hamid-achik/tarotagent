@@ -111,7 +111,7 @@ export default defineEventHandler(async (event) => {
 
     throw createError({
       statusCode: 502,
-      statusMessage: normalizedError.message,
+      statusMessage: 'Email delivery is not available right now. Please try again later.',
     })
   }
 })

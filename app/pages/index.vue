@@ -167,11 +167,7 @@ async function handleEmailRequest(email: string) {
       shareSlug: shareSlug.value ?? undefined,
     })
   } catch (caughtError) {
-    emailError.set(
-      caughtError instanceof Error
-        ? caughtError.message
-        : 'Unable to email this reading right now.',
-    )
+    emailError.set(getFetchErrorMessage(caughtError, 'Unable to email this reading right now.'))
   } finally {
     isSendingEmail.value = false
   }
