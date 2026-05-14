@@ -3,7 +3,11 @@ import { inject } from '@vercel/analytics'
 
 inject()
 
-const siteUrl = useRuntimeConfig().public.siteUrl
+const route = useRoute()
+const runtimeConfig = useRuntimeConfig()
+const siteUrl = runtimeConfig.public.siteUrl
+const siteName = runtimeConfig.public.siteName
+const canonicalUrl = computed(() => new URL(route.path || '/', siteUrl).toString())
 
 useHead({
   link: [
@@ -13,7 +17,7 @@ useHead({
       rel: 'stylesheet',
       href: 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap',
     },
-    { rel: 'canonical', href: siteUrl },
+    { rel: 'canonical', href: canonicalUrl },
   ],
   script: [
     {
@@ -21,9 +25,9 @@ useHead({
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'WebApplication',
-        name: 'Tarot Agent',
+        name: siteName,
         description:
-          'AI-powered tarot readings with pixel-art Major Arcana cards and 6 unique spread types.',
+          'AI-powered tarot readings with a full 78-card gothic pixel-art deck and 6 unique spread types.',
         url: siteUrl,
         applicationCategory: 'Entertainment',
         operatingSystem: 'Any',

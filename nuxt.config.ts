@@ -10,9 +10,16 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
+    databaseUrl: '',
+    anthropicApiKey: '',
+    resendApiKey: '',
+    resendFromEmail: '',
+    redisRestUrl: '',
+    redisRestToken: '',
     public: {
-      siteUrl: process.env.SITE_URL || 'https://tarotagent.vercel.app',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://tarotagent.app',
+      siteName: process.env.NUXT_PUBLIC_SITE_NAME || process.env.SITE_NAME || 'Tarot Agent',
+      emailEnabled: false,
     },
   },
 
@@ -26,7 +33,7 @@ export default defineNuxtConfig({
         {
           name: 'description',
           content:
-            'Get mystical tarot readings powered by AI. Choose from 6 spread types including Celtic Cross, Love, and Career. Beautiful pixel-art Major Arcana cards with streaming interpretations.',
+            'Get mystical tarot readings powered by AI. Choose from 6 spread types including Celtic Cross, Love, and Career with a full 78-card gothic pixel-art deck.',
         },
         { name: 'theme-color', content: '#0a0a1a' },
 
@@ -36,7 +43,7 @@ export default defineNuxtConfig({
         {
           property: 'og:description',
           content:
-            'Consult the cards. AI-powered tarot readings with beautiful pixel-art Major Arcana and 6 unique spread types.',
+            'Consult the cards. AI-powered tarot readings with a full 78-card gothic pixel-art deck and 6 unique spread types.',
         },
         { property: 'og:image', content: '/og-image.png' },
         { property: 'og:site_name', content: 'Tarot Agent' },
@@ -47,7 +54,7 @@ export default defineNuxtConfig({
         {
           name: 'twitter:description',
           content:
-            'Consult the cards. AI-powered tarot readings with beautiful pixel-art Major Arcana and 6 unique spread types.',
+            'Consult the cards. AI-powered tarot readings with a full 78-card gothic pixel-art deck and 6 unique spread types.',
         },
         { name: 'twitter:image', content: '/og-image.png' },
       ],

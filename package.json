@@ -14,19 +14,29 @@
     "format:fix": "prettier --write .",
     "test": "vitest",
     "test:e2e": "playwright test",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "migrate": "node scripts/migrate.mjs",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "latest",
+    "@neondatabase/serverless": "^1.0.2",
     "@nuxt/ui": "latest",
     "@vercel/analytics": "^1.6.1",
-    "nuxt": "latest"
+    "drizzle-orm": "^0.45.2",
+    "drizzle-zod": "^0.8.3",
+    "nuxt": "latest",
+    "resend": "^6.10.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@nuxt/eslint": "latest",
     "@nuxt/test-utils": "latest",
     "@playwright/test": "latest",
     "@tailwindcss/vite": "latest",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-prettier": "latest",
     "eslint-plugin-prettier": "latest",

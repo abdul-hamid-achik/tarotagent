@@ -1,89 +1,8 @@
-export interface TarotCard {
-  id: number
-  name: string
-  numeral: string
-  image: string
-  keywords: string[]
-  uprightMeaning: string
-  reversedMeaning: string
-  description: string
-}
+import { spreadDefinitions } from '../../shared/tarot'
+import type { DrawnCard, SpreadDefinition, SpreadType, TarotCard } from '../../shared/tarot'
 
-export interface DrawnCard extends TarotCard {
-  reversed: boolean
-  position: string
-}
-
-export type SpreadType = 'single' | 'yes-no' | 'three-card' | 'love' | 'career' | 'celtic-cross'
-
-export interface SpreadDefinition {
-  name: string
-  description: string
-  positions: string[]
-  readingGuide: string
-}
-
-export const spreadDefinitions: Record<SpreadType, SpreadDefinition> = {
-  single: {
-    name: 'Single Card',
-    description: 'A focused pull for clarity on one question',
-    positions: ['Significance'],
-    readingGuide:
-      'This is a single card pull. Go deep. Explore every facet of this one card — its symbolism, its energy, its shadows and light — as it relates to the question. A single card deserves the same depth as a full spread. Treat it like a meditation, not a summary.',
-  },
-  'yes-no': {
-    name: 'Yes or No',
-    description: 'A direct answer with nuance',
-    positions: ['Answer'],
-    readingGuide:
-      'The querent seeks a yes-or-no answer. Begin with a clear lean — yes, no, or "not yet" — based on the card\'s energy and orientation. Then unpack the why. Upright cards generally lean yes; reversed lean no, but context and the specific card matter more than a rigid rule. Be direct first, then add depth.',
-  },
-  'three-card': {
-    name: 'Three Card',
-    description: 'Past, present, and future',
-    positions: ['Past', 'Present', 'Future'],
-    readingGuide:
-      'Read as a narrative arc: the Past card sets the stage and shows what brought the querent here. The Present card reveals the current energy and tension. The Future card shows where this trajectory leads. The power is in the movement between them — show how one flows into the next.',
-  },
-  love: {
-    name: 'Love',
-    description: 'Relationship dynamics and potential',
-    positions: ['You', 'The Other', 'The Connection', 'The Challenge', 'The Potential'],
-    readingGuide:
-      "Read the first two cards as mirrors of each person's energy. The Connection card reveals what binds or stands between them. The Challenge is the friction point — not necessarily negative, but where growth is required. The Potential shows what this relationship can become if the challenge is met honestly. Be compassionate but truthful; never promise outcomes in matters of the heart.",
-  },
-  career: {
-    name: 'Career Path',
-    description: 'Professional direction and obstacles',
-    positions: [
-      'Current Position',
-      'The Obstacle',
-      'Hidden Influence',
-      'The Action',
-      'The Outcome',
-    ],
-    readingGuide:
-      'Read this as a strategic map. Current Position shows where the querent truly stands (not where they think they stand). The Obstacle is what blocks progress. Hidden Influence reveals an unseen force — a person, a belief, or a circumstance operating beneath the surface. The Action is what must be done. The Outcome shows the result of taking (or ignoring) that action. Be pragmatic and grounded.',
-  },
-  'celtic-cross': {
-    name: 'Celtic Cross',
-    description: 'The classic deep-dive spread',
-    positions: [
-      'Present',
-      'Challenge',
-      'Foundation',
-      'Recent Past',
-      'Crown',
-      'Near Future',
-      'Self',
-      'Environment',
-      'Hopes & Fears',
-      'Outcome',
-    ],
-    readingGuide:
-      "This is the most complete spread. Read it in two phases: First, the cross (cards 1-6) tells the story — Present and Challenge are the core tension, Foundation is the root cause, Recent Past is what's fading, Crown is the conscious goal, Near Future is the next chapter. Then the staff (cards 7-10) reveals the deeper truth — Self is the querent's inner state, Environment is external forces, Hopes & Fears (often the same thing) reveals what drives them, and Outcome is the culmination. Weave both phases into one unified narrative.",
-  },
-}
+export { spreadDefinitions }
+export type { DrawnCard, SpreadDefinition, SpreadType, TarotCard }
 
 export const majorArcana: TarotCard[] = [
   {
@@ -373,3 +292,639 @@ export const majorArcana: TarotCard[] = [
       'A dancing figure is encircled by a great laurel wreath, holding a wand in each hand. The four creatures of the evangelists occupy the corners: an angel, an eagle, a bull, and a lion. Purple ribbons bind the wreath at top and bottom.',
   },
 ]
+
+// Tarot asset contract:
+// - public/cards/back.png is the shared face-down card cover.
+// - public/cards/00-... through 77-... are 128x180 PNGs matching the UI 32:45 ratio.
+// - IDs 00-21 are Major Arcana; IDs 22-77 follow this suit/rank order.
+// Keep this order and cardImagePath() aligned with the generated asset filenames.
+const minorSuits = [
+  {
+    name: 'Wands',
+    slug: 'wands',
+  },
+  {
+    name: 'Cups',
+    slug: 'cups',
+  },
+  {
+    name: 'Swords',
+    slug: 'swords',
+  },
+  {
+    name: 'Pentacles',
+    slug: 'pentacles',
+  },
+] as const
+
+const minorRanks = [
+  {
+    name: 'Ace',
+    slug: 'ace',
+    numeral: 'Ace',
+  },
+  {
+    name: 'Two',
+    slug: 'two',
+    numeral: 'II',
+  },
+  {
+    name: 'Three',
+    slug: 'three',
+    numeral: 'III',
+  },
+  {
+    name: 'Four',
+    slug: 'four',
+    numeral: 'IV',
+  },
+  {
+    name: 'Five',
+    slug: 'five',
+    numeral: 'V',
+  },
+  {
+    name: 'Six',
+    slug: 'six',
+    numeral: 'VI',
+  },
+  {
+    name: 'Seven',
+    slug: 'seven',
+    numeral: 'VII',
+  },
+  {
+    name: 'Eight',
+    slug: 'eight',
+    numeral: 'VIII',
+  },
+  {
+    name: 'Nine',
+    slug: 'nine',
+    numeral: 'IX',
+  },
+  {
+    name: 'Ten',
+    slug: 'ten',
+    numeral: 'X',
+  },
+  {
+    name: 'Page',
+    slug: 'page',
+    numeral: 'Page',
+  },
+  {
+    name: 'Knight',
+    slug: 'knight',
+    numeral: 'Knight',
+  },
+  {
+    name: 'Queen',
+    slug: 'queen',
+    numeral: 'Queen',
+  },
+  {
+    name: 'King',
+    slug: 'king',
+    numeral: 'King',
+  },
+] as const
+
+type MinorCardDetails = Pick<
+  TarotCard,
+  'keywords' | 'uprightMeaning' | 'reversedMeaning' | 'description'
+>
+
+const minorCardDetails: Record<string, MinorCardDetails> = {
+  'ace-of-wands': {
+    keywords: ['inspiration', 'potential', 'creation', 'spark'],
+    uprightMeaning:
+      'The Ace of Wands brings a flash of creative fire. A new idea, desire, or path is asking to be acted on before it cools. This is raw potential, not a finished plan, and it needs courage more than certainty.',
+    reversedMeaning:
+      'Reversed, the Ace of Wands shows a spark being smothered by hesitation, burnout, or scattered attention. The desire is real, but the channel for it is blocked or being forced before it has enough air.',
+    description:
+      'A single budding wand blazes with a small flame above a castle road, held like a sacred torch at the beginning of a quest.',
+  },
+  'two-of-wands': {
+    keywords: ['planning', 'choice', 'vision', 'threshold'],
+    uprightMeaning:
+      'The Two of Wands stands at the balcony with the world in hand. It asks for vision, planning, and the courage to choose a direction before the gate opens.',
+    reversedMeaning:
+      'Reversed, the Two of Wands can show fear of leaving the familiar, plans made too small, or ambition that has no real path beneath it.',
+    description:
+      'A cloaked figure surveys the horizon between two staffs, weighing a future that is close enough to choose but not yet entered.',
+  },
+  'three-of-wands': {
+    keywords: ['expansion', 'foresight', 'progress', 'waiting'],
+    uprightMeaning:
+      'The Three of Wands shows the first response from a choice already made. Plans are moving beyond your direct control, and patience now matters as much as initiative.',
+    reversedMeaning:
+      'Reversed, the Three of Wands warns of delayed returns, narrow horizons, or plans that were sent out before their foundations were steady.',
+    description:
+      'Three planted wands frame a watcher looking toward ships and sunrise, waiting for effort to return as opportunity.',
+  },
+  'four-of-wands': {
+    keywords: ['celebration', 'homecoming', 'stability', 'belonging'],
+    uprightMeaning:
+      'The Four of Wands marks a threshold of welcome. It brings celebration, temporary shelter, and the relief of arriving somewhere that can hold joy.',
+    reversedMeaning:
+      'Reversed, the Four of Wands suggests unstable foundations, delayed celebration, or belonging that feels conditional rather than secure.',
+    description:
+      'Four flowered staves make a garlanded gate before a warm courtyard where celebration gathers.',
+  },
+  'five-of-wands': {
+    keywords: ['competition', 'friction', 'conflict', 'testing'],
+    uprightMeaning:
+      'The Five of Wands brings heat without a clear center. Rival desires, voices, or priorities collide, but the struggle can train strength if it does not become vanity.',
+    reversedMeaning:
+      'Reversed, the Five of Wands can show conflict avoided until it festers, or the first easing after needless competition has exhausted itself.',
+    description:
+      'Five figures cross their staves in a noisy contest, more chaotic than cruel, beneath a restless red sky.',
+  },
+  'six-of-wands': {
+    keywords: ['victory', 'recognition', 'confidence', 'arrival'],
+    uprightMeaning:
+      'The Six of Wands is public recognition after a hard push. It asks you to accept the laurel without confusing praise for the whole journey.',
+    reversedMeaning:
+      'Reversed, the Six of Wands points to private doubt, hollow applause, delayed recognition, or pride that needs to be brought back to proportion.',
+    description:
+      'A rider carries a laurel-crowned wand through a city procession while other staves rise like banners.',
+  },
+  'seven-of-wands': {
+    keywords: ['defense', 'persistence', 'pressure', 'conviction'],
+    uprightMeaning:
+      'The Seven of Wands asks you to hold your ground from the high place you earned. The pressure is real, but so is your advantage if you act from conviction rather than panic.',
+    reversedMeaning:
+      'Reversed, the Seven of Wands can show exhaustion, weak boundaries, or a battle being fought from reflex instead of purpose.',
+    description:
+      'A solitary defender raises one staff against six below, standing on uneven stone with no room for half-heartedness.',
+  },
+  'eight-of-wands': {
+    keywords: ['speed', 'messages', 'movement', 'release'],
+    uprightMeaning:
+      'The Eight of Wands is movement after delay. Messages, decisions, or events travel quickly now, and the best response is clean direction rather than overcontrol.',
+    reversedMeaning:
+      'Reversed, the Eight of Wands warns of mixed signals, delays, haste, or energy flying in too many directions to land well.',
+    description:
+      'Eight flaming staves streak across the sky over a river valley, carrying momentum like arrows of fire.',
+  },
+  'nine-of-wands': {
+    keywords: ['resilience', 'guardedness', 'endurance', 'boundaries'],
+    uprightMeaning:
+      'The Nine of Wands shows the survivor still standing. You are closer to the end than you feel, but vigilance must not become a prison.',
+    reversedMeaning:
+      'Reversed, the Nine of Wands suggests depletion, suspicion, or a refusal to lower defenses even when the danger has changed.',
+    description:
+      'A weary guard grips a staff before a wall of eight others, bandaged but alert under lantern light.',
+  },
+  'ten-of-wands': {
+    keywords: ['burden', 'responsibility', 'completion', 'overload'],
+    uprightMeaning:
+      'The Ten of Wands carries the cost of saying yes too often. Completion is near, but the load needs honesty, delegation, or release.',
+    reversedMeaning:
+      'Reversed, the Ten of Wands shows burdens being dropped, resisted, or denied. Relief is possible, but only if pride stops calling overload devotion.',
+    description:
+      'A bent traveler carries ten heavy staves toward a town gate, close to arrival but nearly hidden by the weight.',
+  },
+  'page-of-wands': {
+    keywords: ['curiosity', 'message', 'exploration', 'enthusiasm'],
+    uprightMeaning:
+      'The Page of Wands brings a message from the fire within. Curiosity is leading, and the first step matters more than mastery.',
+    reversedMeaning:
+      'Reversed, the Page of Wands can show scattered enthusiasm, immaturity, or an idea that keeps being announced but not practiced.',
+    description:
+      'A young messenger studies a budding staff as if it has begun speaking, bright with restless possibility.',
+  },
+  'knight-of-wands': {
+    keywords: ['action', 'adventure', 'impulse', 'pursuit'],
+    uprightMeaning:
+      'The Knight of Wands charges toward desire. It brings courage, momentum, and bold pursuit, but it needs direction or it burns through what it meant to build.',
+    reversedMeaning:
+      'Reversed, the Knight of Wands warns of recklessness, volatility, impatience, or a quest driven by heat instead of purpose.',
+    description:
+      'An armored rider surges forward with a flaming staff and a wind-torn cloak, all motion and red-gold force.',
+  },
+  'queen-of-wands': {
+    keywords: ['confidence', 'warmth', 'magnetism', 'creative power'],
+    uprightMeaning:
+      'The Queen of Wands owns her fire without apology. She brings confidence, creative command, and the power to attract by being fully alive.',
+    reversedMeaning:
+      'Reversed, the Queen of Wands can show jealousy, self-doubt, burnout, or charisma turned into control.',
+    description:
+      'A crowned queen holds a blooming staff beside a sunflower and watchful black cat, radiant and self-possessed.',
+  },
+  'king-of-wands': {
+    keywords: ['leadership', 'vision', 'enterprise', 'mastery'],
+    uprightMeaning:
+      'The King of Wands turns vision into command. He asks for brave leadership, long-range thinking, and the maturity to direct fire without consuming the room.',
+    reversedMeaning:
+      'Reversed, the King of Wands warns of arrogance, impulsive authority, harsh expectations, or a vision imposed rather than shared.',
+    description:
+      'A king sits among salamander and lion emblems, holding a flowering wand like a scepter of mastered flame.',
+  },
+  'ace-of-cups': {
+    keywords: ['love', 'opening', 'intuition', 'healing'],
+    uprightMeaning:
+      'The Ace of Cups opens the heart like a spring. It brings emotional renewal, intuition, compassion, and the first clean overflow of feeling.',
+    reversedMeaning:
+      'Reversed, the Ace of Cups shows feeling held back, grief unpoured, or a heart trying to protect itself from the very medicine it needs.',
+    description:
+      'A golden chalice overflows into lilies and water, offered beneath a quiet dove and silver-blue sky.',
+  },
+  'two-of-cups': {
+    keywords: ['union', 'trust', 'agreement', 'mutuality'],
+    uprightMeaning:
+      'The Two of Cups is the meeting of two honest vessels. It favors mutual respect, reconciliation, affection, and agreements made eye to eye.',
+    reversedMeaning:
+      'Reversed, the Two of Cups points to imbalance, misalignment, old hurt between people, or a bond that needs truth before closeness.',
+    description:
+      'Two figures exchange chalices beneath a winged emblem, making a vow in a garden courtyard.',
+  },
+  'three-of-cups': {
+    keywords: ['friendship', 'community', 'joy', 'support'],
+    uprightMeaning:
+      'The Three of Cups gathers joy in company. It speaks of friendship, celebration, chosen family, and the healing that comes from being witnessed.',
+    reversedMeaning:
+      'Reversed, the Three of Cups can show social strain, exclusion, gossip, overindulgence, or a need for quieter companionship.',
+    description:
+      'Three companions raise cups in a harvest garden, circling one another with laughter and abundance.',
+  },
+  'four-of-cups': {
+    keywords: ['apathy', 'reflection', 'discontent', 'reconsideration'],
+    uprightMeaning:
+      'The Four of Cups sits with emotional fatigue. Something is being offered, but the heart may need stillness before it can recognize what is real.',
+    reversedMeaning:
+      'Reversed, the Four of Cups suggests re-engagement, a missed chance becoming visible, or the first willingness to lift your eyes.',
+    description:
+      'A seated figure studies three cups while a fourth is offered from mist, quiet and easy to overlook.',
+  },
+  'five-of-cups': {
+    keywords: ['grief', 'regret', 'loss', 'reorientation'],
+    uprightMeaning:
+      'The Five of Cups honors grief but asks you not to mistake loss for the whole landscape. What has spilled matters, and what remains matters too.',
+    reversedMeaning:
+      'Reversed, the Five of Cups can show forgiveness, acceptance, or the painful moment when grief begins to loosen its grip.',
+    description:
+      'A black-cloaked figure mourns spilled chalices beside a river, with two upright cups waiting behind.',
+  },
+  'six-of-cups': {
+    keywords: ['memory', 'kindness', 'innocence', 'return'],
+    uprightMeaning:
+      'The Six of Cups brings memory softened by kindness. It can show nostalgia, generosity, childhood patterns, or a return to what once felt simple.',
+    reversedMeaning:
+      'Reversed, the Six of Cups warns against living in the past, idealizing what was, or repeating old emotional roles.',
+    description:
+      'Flower-filled cups pass between children in a walled courtyard, gentle and sunlit with memory.',
+  },
+  'seven-of-cups': {
+    keywords: ['illusion', 'choices', 'fantasy', 'temptation'],
+    uprightMeaning:
+      'The Seven of Cups fills the air with visions. Many options glitter, but not every image can become a life; discernment is the real task.',
+    reversedMeaning:
+      'Reversed, the Seven of Cups brings fog lifting, fantasy collapsing, or the pressure to choose after too long among beautiful distractions.',
+    description:
+      'Seven chalices float in cloud, each holding a different dream, while a seeker stands below in wonder and risk.',
+  },
+  'eight-of-cups': {
+    keywords: ['departure', 'search', 'release', 'disillusionment'],
+    uprightMeaning:
+      'The Eight of Cups walks away from what is full enough to leave. It is the courage to seek deeper truth when comfort no longer feeds the soul.',
+    reversedMeaning:
+      'Reversed, the Eight of Cups suggests fear of leaving, returning too soon, or abandoning a path before understanding why it disappointed you.',
+    description:
+      'A cloaked traveler leaves stacked cups by moonlit water and follows a mountain path into the dark.',
+  },
+  'nine-of-cups': {
+    keywords: ['satisfaction', 'pleasure', 'wish', 'contentment'],
+    uprightMeaning:
+      'The Nine of Cups is the glow of a wish fulfilled. It celebrates pleasure, gratitude, and the right to enjoy what has been earned.',
+    reversedMeaning:
+      'Reversed, the Nine of Cups warns of shallow satisfaction, excess, hidden emptiness, or wanting applause more than nourishment.',
+    description:
+      'A satisfied host sits before a row of golden cups, warm with comfort and self-contained delight.',
+  },
+  'ten-of-cups': {
+    keywords: ['harmony', 'family', 'fulfillment', 'belonging'],
+    uprightMeaning:
+      'The Ten of Cups shows emotional completion shared with others. It favors peace, belonging, reconciliation, and the kind of joy that becomes shelter.',
+    reversedMeaning:
+      'Reversed, the Ten of Cups can show family strain, private unhappiness behind a bright image, or a dream of harmony that needs repair.',
+    description:
+      'A family stands under an arc of cups and rainbow light, with a river home glowing in the distance.',
+  },
+  'page-of-cups': {
+    keywords: ['message', 'imagination', 'sensitivity', 'surprise'],
+    uprightMeaning:
+      'The Page of Cups arrives with a tender message. Intuition, apology, art, or affection may appear in a form that feels strange but sincere.',
+    reversedMeaning:
+      'Reversed, the Page of Cups suggests emotional immaturity, blocked creativity, moodiness, or a message the heart is afraid to send.',
+    description:
+      'A young messenger holds a chalice where a small fish appears, strange and gentle as intuition itself.',
+  },
+  'knight-of-cups': {
+    keywords: ['romance', 'proposal', 'quest', 'idealism'],
+    uprightMeaning:
+      'The Knight of Cups follows the heart as a quest. He brings invitation, romance, artistry, and movement guided by feeling.',
+    reversedMeaning:
+      'Reversed, the Knight of Cups warns of charm without grounding, emotional avoidance, fantasy, or promises prettier than their follow-through.',
+    description:
+      'A silver rider carries a chalice beside slow water, offering feeling with ceremony and grace.',
+  },
+  'queen-of-cups': {
+    keywords: ['empathy', 'intuition', 'care', 'depth'],
+    uprightMeaning:
+      'The Queen of Cups listens beneath words. She brings compassion, emotional wisdom, dream knowledge, and the strength of a well-held heart.',
+    reversedMeaning:
+      'Reversed, the Queen of Cups can show emotional overwhelm, porous boundaries, secrecy, or care that has forgotten the self.',
+    description:
+      'A sea-throned queen holds a covered chalice close, guarded and luminous with deep feeling.',
+  },
+  'king-of-cups': {
+    keywords: ['emotional mastery', 'calm', 'wisdom', 'diplomacy'],
+    uprightMeaning:
+      'The King of Cups remains steady while the waters move. He asks for emotional maturity, compassion under pressure, and calm leadership.',
+    reversedMeaning:
+      'Reversed, the King of Cups warns of manipulation, suppression, mood masked as wisdom, or calm that refuses to be honest.',
+    description:
+      'A composed king sits above the sea with chalice and scepter, holding balance while waves gather around him.',
+  },
+  'ace-of-swords': {
+    keywords: ['clarity', 'truth', 'breakthrough', 'decision'],
+    uprightMeaning:
+      'The Ace of Swords cuts through confusion. It brings truth, decisive thought, and the clean edge needed to name what is real.',
+    reversedMeaning:
+      'Reversed, the Ace of Swords shows clouded judgment, harsh words, withheld truth, or a decision made before the facts are clear.',
+    description:
+      'A single sword rises crowned through storm clouds, bright and severe as a new truth.',
+  },
+  'two-of-swords': {
+    keywords: ['stalemate', 'choice', 'guardedness', 'pause'],
+    uprightMeaning:
+      'The Two of Swords holds still between opposing truths. It asks for inner quiet, not denial, before a difficult choice is made.',
+    reversedMeaning:
+      'Reversed, the Two of Swords points to avoidance breaking down, information surfacing, or a choice delayed until pressure forces movement.',
+    description:
+      'A blindfolded figure crosses two blades over the heart beside still water and a crescent moon.',
+  },
+  'three-of-swords': {
+    keywords: ['heartbreak', 'sorrow', 'truth', 'release'],
+    uprightMeaning:
+      'The Three of Swords is pain made clear. It does not soften the wound, but it names the truth so healing can begin honestly.',
+    reversedMeaning:
+      'Reversed, the Three of Swords suggests recovery, forgiveness, old grief returning, or pain that must be removed one blade at a time.',
+    description:
+      'Three swords pierce a red heart-shaped shield as rain falls through a dark chapel sky.',
+  },
+  'four-of-swords': {
+    keywords: ['rest', 'recovery', 'contemplation', 'truce'],
+    uprightMeaning:
+      'The Four of Swords demands rest after strain. Healing needs quiet, prayer, sleep, or distance from the battle.',
+    reversedMeaning:
+      'Reversed, the Four of Swords warns of restlessness, burnout, forced isolation, or returning too soon before recovery is complete.',
+    description:
+      'A knight rests like an effigy beneath chapel swords, held in sacred pause and pale window light.',
+  },
+  'five-of-swords': {
+    keywords: ['conflict', 'defeat', 'tension', 'cost'],
+    uprightMeaning:
+      'The Five of Swords asks what victory has cost. Winning may be possible, but the card questions pride, strategy, and the damage left behind.',
+    reversedMeaning:
+      'Reversed, the Five of Swords can show reconciliation, withdrawal from conflict, lingering resentment, or accountability after harm.',
+    description:
+      'A lone figure gathers blades on a stormy shore while others turn away from the aftermath.',
+  },
+  'six-of-swords': {
+    keywords: ['transition', 'passage', 'healing', 'distance'],
+    uprightMeaning:
+      'The Six of Swords moves away from troubled waters. It is not instant joy, but it is passage toward steadier ground.',
+    reversedMeaning:
+      'Reversed, the Six of Swords suggests resistance to transition, emotional baggage, unfinished departure, or a journey delayed.',
+    description:
+      'A boat crosses misty water with six swords standing in the hull, carrying sorrow toward a quieter shore.',
+  },
+  'seven-of-swords': {
+    keywords: ['strategy', 'secrecy', 'avoidance', 'cunning'],
+    uprightMeaning:
+      'The Seven of Swords moves quietly and asks why. It can show strategy and independence, or avoidance dressed as cleverness.',
+    reversedMeaning:
+      'Reversed, the Seven of Swords reveals the hidden thing: confession, exposure, self-deception, or the need to change tactics.',
+    description:
+      'A stealthy figure slips from camp with stolen blades while two remain planted behind.',
+  },
+  'eight-of-swords': {
+    keywords: ['restriction', 'fear', 'limitation', 'perspective'],
+    uprightMeaning:
+      'The Eight of Swords shows a prison partly made of belief. The limits are real, but not all of them are locked.',
+    reversedMeaning:
+      'Reversed, the Eight of Swords brings loosening bonds, a changed perspective, or the first refusal to cooperate with fear.',
+    description:
+      'A bound and blindfolded figure stands among eight blades, with an opening visible beyond the fear.',
+  },
+  'nine-of-swords': {
+    keywords: ['anxiety', 'nightmare', 'guilt', 'distress'],
+    uprightMeaning:
+      'The Nine of Swords wakes in the dark with the mind turned sharp against itself. It asks for compassion, confession, and help with what is too heavy alone.',
+    reversedMeaning:
+      'Reversed, the Nine of Swords can show easing anxiety, hidden shame surfacing, or a spiral that needs interruption before it deepens.',
+    description:
+      'A figure sits awake beneath nine swords on the wall, surrounded by midnight and embroidered worry.',
+  },
+  'ten-of-swords': {
+    keywords: ['ending', 'defeat', 'collapse', 'release'],
+    uprightMeaning:
+      'The Ten of Swords is the end of the line for a painful pattern. It is severe, but it is final; dawn begins because denial cannot continue.',
+    reversedMeaning:
+      'Reversed, the Ten of Swords suggests survival after collapse, resistance to an ending, or recovery beginning in small movements.',
+    description:
+      'A fallen figure lies under a dark sky as ten swords mark the finality of defeat and the first red line of dawn.',
+  },
+  'page-of-swords': {
+    keywords: ['curiosity', 'watchfulness', 'truth-seeking', 'message'],
+    uprightMeaning:
+      'The Page of Swords studies the wind before speaking. It brings alertness, questions, investigation, and a young truth still learning tact.',
+    reversedMeaning:
+      'Reversed, the Page of Swords warns of gossip, defensiveness, scattered thought, or questions used as weapons.',
+    description:
+      'A young page holds a raised blade on a windy hill, sharp-eyed beneath fast-moving clouds.',
+  },
+  'knight-of-swords': {
+    keywords: ['urgency', 'ambition', 'argument', 'speed'],
+    uprightMeaning:
+      'The Knight of Swords charges at the problem with full force. He brings courage and speed, but asks whether the mind is leading or merely attacking.',
+    reversedMeaning:
+      'Reversed, the Knight of Swords warns of recklessness, cruelty, tunnel vision, or a rush that creates the very conflict it meant to solve.',
+    description:
+      'An armored rider drives through storm wind with sword lifted, all edge, motion, and conviction.',
+  },
+  'queen-of-swords': {
+    keywords: ['discernment', 'independence', 'honesty', 'boundaries'],
+    uprightMeaning:
+      'The Queen of Swords speaks from hard-earned clarity. She brings honesty, independence, clean boundaries, and wisdom without sentimentality.',
+    reversedMeaning:
+      'Reversed, the Queen of Swords can show bitterness, isolation, excessive criticism, or truth used without mercy.',
+    description:
+      'A throne-seated queen holds one upright sword and extends her hand, inviting truth but not confusion.',
+  },
+  'king-of-swords': {
+    keywords: ['authority', 'logic', 'ethics', 'judgment'],
+    uprightMeaning:
+      'The King of Swords rules through principle. He asks for reason, ethics, strategy, and decisions that can withstand scrutiny.',
+    reversedMeaning:
+      'Reversed, the King of Swords warns of cold authority, manipulation, rigid thinking, or intellect separated from conscience.',
+    description:
+      'A severe king holds a vertical blade against a clear sky, crowned by law, reason, and responsibility.',
+  },
+  'ace-of-pentacles': {
+    keywords: ['opportunity', 'prosperity', 'seed', 'material beginning'],
+    uprightMeaning:
+      'The Ace of Pentacles places a real opportunity in your hand. It asks for practical care, patience, and the willingness to grow something tangible.',
+    reversedMeaning:
+      'Reversed, the Ace of Pentacles warns of missed chances, poor planning, scarcity fear, or a gift that needs grounding before it can prosper.',
+    description:
+      'A golden pentacle is offered over a garden path and arched hedge, promising earth that can be worked.',
+  },
+  'two-of-pentacles': {
+    keywords: ['balance', 'adaptation', 'priorities', 'change'],
+    uprightMeaning:
+      'The Two of Pentacles keeps motion balanced. It asks for flexible priorities, rhythm, and practical adjustment while conditions shift.',
+    reversedMeaning:
+      'Reversed, the Two of Pentacles shows overwhelm, disorganization, dropped obligations, or a life trying to juggle too much.',
+    description:
+      'A nimble figure loops two coins through an infinity ribbon while ships rise and fall behind him.',
+  },
+  'three-of-pentacles': {
+    keywords: ['craft', 'collaboration', 'skill', 'apprenticeship'],
+    uprightMeaning:
+      'The Three of Pentacles honors skilled work done with others. Plans improve when craft, humility, and collaboration meet.',
+    reversedMeaning:
+      'Reversed, the Three of Pentacles suggests poor teamwork, ignored expertise, weak standards, or effort without coordination.',
+    description:
+      'A mason, monk, and patron confer beneath three carved pentacles in a chapel under construction.',
+  },
+  'four-of-pentacles': {
+    keywords: ['security', 'control', 'possession', 'conservation'],
+    uprightMeaning:
+      'The Four of Pentacles protects what has been gained. It can mean wise conservation, but also the fear that turns safety into a locked room.',
+    reversedMeaning:
+      'Reversed, the Four of Pentacles shows release, financial instability, generosity after fear, or control finally loosening.',
+    description:
+      'A guarded figure clutches coins at crown, chest, and feet, fixed before a walled city.',
+  },
+  'five-of-pentacles': {
+    keywords: ['hardship', 'poverty', 'exclusion', 'support'],
+    uprightMeaning:
+      'The Five of Pentacles walks through cold need beside a lit window. It shows hardship, but also asks where help is nearer than pride allows.',
+    reversedMeaning:
+      'Reversed, the Five of Pentacles points to recovery, accepting aid, spiritual warmth returning, or the first step out of scarcity.',
+    description:
+      'Two travelers pass a glowing chapel window of pentacles through snow, close to shelter but not yet inside.',
+  },
+  'six-of-pentacles': {
+    keywords: ['generosity', 'exchange', 'fairness', 'support'],
+    uprightMeaning:
+      'The Six of Pentacles weighs giving and receiving. Resources move best when generosity is paired with dignity and clear balance.',
+    reversedMeaning:
+      'Reversed, the Six of Pentacles warns of debt, strings attached, unequal exchange, or help that preserves power instead of restoring it.',
+    description:
+      'A merchant gives coins while holding scales, with pentacles arranged around an act of measured charity.',
+  },
+  'seven-of-pentacles': {
+    keywords: ['patience', 'assessment', 'investment', 'harvest'],
+    uprightMeaning:
+      'The Seven of Pentacles pauses in the field to assess growth. It asks whether continued patience, adjustment, or a new investment is needed.',
+    reversedMeaning:
+      'Reversed, the Seven of Pentacles shows impatience, poor returns, wasted effort, or a harvest neglected by inconsistent care.',
+    description: 'A gardener leans on a staff before pentacles ripening slowly among vines.',
+  },
+  'eight-of-pentacles': {
+    keywords: ['practice', 'discipline', 'craftsmanship', 'focus'],
+    uprightMeaning:
+      'The Eight of Pentacles is devotion through repetition. Skill grows because attention is given again and again to the work in front of you.',
+    reversedMeaning:
+      'Reversed, the Eight of Pentacles warns of perfectionism, boredom, shortcuts, or work that has lost its purpose.',
+    description:
+      'A craftsperson engraves pentacles one by one at a bench, surrounded by tools and disciplined effort.',
+  },
+  'nine-of-pentacles': {
+    keywords: ['independence', 'refinement', 'self-worth', 'abundance'],
+    uprightMeaning:
+      'The Nine of Pentacles enjoys earned independence. It speaks of refinement, self-trust, solitude by choice, and abundance maintained with care.',
+    reversedMeaning:
+      'Reversed, the Nine of Pentacles can show dependence, self-worth tied to appearances, overspending, or luxury that does not nourish.',
+    description:
+      'An elegant figure stands in a vineyard with a falcon, surrounded by pentacles and cultivated ease.',
+  },
+  'ten-of-pentacles': {
+    keywords: ['legacy', 'family', 'wealth', 'continuity'],
+    uprightMeaning:
+      'The Ten of Pentacles looks beyond one lifetime. It favors legacy, family systems, inheritance, institutions, and wealth that outlasts the moment.',
+    reversedMeaning:
+      'Reversed, the Ten of Pentacles warns of family conflict, unstable legacy, inherited burdens, or wealth without belonging.',
+    description:
+      'Generations gather beneath an arch while pentacles form a family tree over house, elder, and child.',
+  },
+  'page-of-pentacles': {
+    keywords: ['study', 'opportunity', 'practice', 'manifestation'],
+    uprightMeaning:
+      'The Page of Pentacles studies the first coin with reverence. It brings learning, practical opportunity, and the discipline to make an idea real.',
+    reversedMeaning:
+      'Reversed, the Page of Pentacles suggests procrastination, poor study, missed practical details, or desire without practice.',
+    description:
+      'A young student holds a pentacle over fields and flowers, ready to learn what the earth requires.',
+  },
+  'knight-of-pentacles': {
+    keywords: ['diligence', 'routine', 'reliability', 'patience'],
+    uprightMeaning:
+      'The Knight of Pentacles advances by steadiness. Slow work, routine, reliability, and responsibility carry more power here than speed.',
+    reversedMeaning:
+      'Reversed, the Knight of Pentacles warns of stagnation, stubbornness, drudgery, or responsibility used as an excuse not to grow.',
+    description:
+      'A still horse and armored rider hold a pentacle over plowed fields, patient and immovable.',
+  },
+  'queen-of-pentacles': {
+    keywords: ['nurture', 'resources', 'practical care', 'comfort'],
+    uprightMeaning:
+      'The Queen of Pentacles makes care tangible. She brings nourishment, resourcefulness, domestic wisdom, and the ability to create comfort without losing strength.',
+    reversedMeaning:
+      'Reversed, the Queen of Pentacles can show neglect, smothering, financial strain, or giving so much that the body and home are depleted.',
+    description:
+      'A garden queen cradles a pentacle among roses, fruit, and a small creature at her feet.',
+  },
+  'king-of-pentacles': {
+    keywords: ['stewardship', 'wealth', 'security', 'mastery'],
+    uprightMeaning:
+      'The King of Pentacles masters the material world through stewardship. He favors prosperity, stability, enterprise, and responsibility for what has been built.',
+    reversedMeaning:
+      'Reversed, the King of Pentacles warns of greed, rigidity, materialism, poor stewardship, or security bought at the cost of spirit.',
+    description:
+      'A prosperous king sits on a vine-carved throne with pentacle and scepter, surrounded by harvest and stone.',
+  },
+}
+
+function cardImagePath(id: number, slug: string): string {
+  return `/cards/${String(id).padStart(2, '0')}-${slug}.png`
+}
+
+export const minorArcana: TarotCard[] = minorSuits.flatMap((suit, suitIndex) =>
+  minorRanks.map((rank, rankIndex) => {
+    const id = 22 + suitIndex * minorRanks.length + rankIndex
+    const details = minorCardDetails[`${rank.slug}-of-${suit.slug}`]
+
+    if (!details) {
+      throw new Error(`Missing tarot card details for ${rank.slug} of ${suit.slug}.`)
+    }
+
+    return {
+      id,
+      name: `${rank.name} of ${suit.name}`,
+      numeral: rank.numeral,
+      image: cardImagePath(id, `${rank.slug}-of-${suit.slug}`),
+      keywords: details.keywords,
+      uprightMeaning: details.uprightMeaning,
+      reversedMeaning: details.reversedMeaning,
+      description: details.description,
+    }
+  }),
+)
+
+export const tarotDeck: TarotCard[] = [...majorArcana, ...minorArcana]

@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 
-// We'll import from the server utils once they're created
-// For now, define the expected structure inline
-const EXPECTED_CARD_COUNT = 22
+const EXPECTED_MAJOR_COUNT = 22
+const EXPECTED_MINOR_COUNT = 56
+const EXPECTED_DECK_COUNT = 78
 
 const EXPECTED_CARD_NAMES = [
   'The Fool',
@@ -39,15 +41,24 @@ const SPREAD_SIZES = {
 }
 
 describe('Tarot Data', async () => {
-  const { majorArcana, spreadDefinitions } = await import('../../server/utils/tarot-data')
+  const { majorArcana, minorArcana, spreadDefinitions, tarotDeck } =
+    await import('../../server/utils/tarot-data')
 
   it('should have exactly 22 Major Arcana cards', () => {
-    expect(majorArcana).toHaveLength(EXPECTED_CARD_COUNT)
+    expect(majorArcana).toHaveLength(EXPECTED_MAJOR_COUNT)
   })
 
-  it('should have sequential IDs from 0 to 21', () => {
-    const ids = majorArcana.map((card) => card.id)
-    expect(ids).toEqual(Array.from({ length: 22 }, (_, i) => i))
+  it('should have exactly 56 Minor Arcana cards', () => {
+    expect(minorArcana).toHaveLength(EXPECTED_MINOR_COUNT)
+  })
+
+  it('should have a full 78-card tarot deck', () => {
+    expect(tarotDeck).toHaveLength(EXPECTED_DECK_COUNT)
+  })
+
+  it('should have sequential IDs from 0 to 77', () => {
+    const ids = tarotDeck.map((card) => card.id)
+    expect(ids).toEqual(Array.from({ length: EXPECTED_DECK_COUNT }, (_, i) => i))
   })
 
   it('should contain all expected card names', () => {
@@ -58,7 +69,7 @@ describe('Tarot Data', async () => {
   })
 
   it('each card should have all required fields', () => {
-    for (const card of majorArcana) {
+    for (const card of tarotDeck) {
       expect(card).toHaveProperty('id')
       expect(card).toHaveProperty('name')
       expect(card).toHaveProperty('numeral')
@@ -73,10 +84,18 @@ describe('Tarot Data', async () => {
   })
 
   it('should have correct image paths', () => {
-    for (const card of majorArcana) {
+    for (const card of tarotDeck) {
       const expectedPrefix = `/cards/${String(card.id).padStart(2, '0')}-`
       expect(card.image).toContain(expectedPrefix)
     }
+  })
+
+  it('should have a generated image file for every card and card back', () => {
+    for (const card of tarotDeck) {
+      expect(existsSync(resolve('public', card.image.replace(/^\//, '')))).toBe(true)
+    }
+
+    expect(existsSync(resolve('public/cards/back.png'))).toBe(true)
   })
 
   it('should define all six spread types', () => {

@@ -1,131 +1,210 @@
 <script setup lang="ts">
-import type { DrawnCard } from '~/types/tarot'
+import type { ReadingCard, SpreadType } from '~~/shared/tarot'
+import { getSpreadRevealTimings, spreadDefinitions } from '~~/shared/tarot'
 
-defineProps<{
-  cards: DrawnCard[]
-  spreadType: string
-  revealed: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    cards: ReadingCard[]
+    spreadType: SpreadType
+    revealed: boolean
+    revealTimings?: number[]
+    instantReveal?: boolean
+  }>(),
+  {
+    revealTimings: undefined,
+    instantReveal: false,
+  },
+)
 
-const isSingleLayout = (type: string) => type === 'single' || type === 'yes-no'
-const isRowLayout = (type: string) => type === 'three-card' || type === 'love' || type === 'career'
+const resolvedRevealTimings = computed(
+  () => props.revealTimings ?? getSpreadRevealTimings(props.spreadType),
+)
+
+const celticCrossLeadCards = computed(() => props.cards.slice(0, 6))
+const celticCrossStaffCards = computed(() => props.cards.slice(6, 10))
+
+const isSingleLayout = (type: SpreadType) => type === 'single' || type === 'yes-no'
+const isRowLayout = (type: SpreadType) =>
+  type === 'three-card' || type === 'love' || type === 'career'
+
+function delayFor(index: number) {
+  return resolvedRevealTimings.value[index] ?? 0
+}
+
+function positionLabel(index: number) {
+  return props.cards[index]?.position ?? spreadDefinitions[props.spreadType].positions[index] ?? ''
+}
 </script>
 
 <template>
-  <!-- Single / Yes-No (1 card, centered) -->
   <div v-if="isSingleLayout(spreadType)" class="flex justify-center">
-    <div v-for="card in cards.slice(0, 1)" :key="card.id" class="flex flex-col items-center gap-1">
-      <p
-        class="text-xs text-mystic-400 font-[family-name:var(--font-family-display)] uppercase tracking-widest mb-2"
-      >
+    <div
+      v-for="card in cards.slice(0, 1)"
+      :key="`${card.id}-${card.position}`"
+      class="flex flex-col items-center gap-1"
+    >
+      <p class="text-xs text-mystic-400 font-display uppercase tracking-widest mb-2">
         {{ card.position }}
       </p>
-      <TarotCard :card="card" :revealed="revealed" :delay="200" />
+      <TarotCard
+        :card="card"
+        :revealed="revealed"
+        :delay="delayFor(0)"
+        :instant-reveal="instantReveal"
+      />
     </div>
   </div>
 
-  <!-- Row spreads: Three Card / Love / Career -->
   <div
     v-else-if="isRowLayout(spreadType)"
     class="flex justify-center items-start gap-3 sm:gap-6 flex-wrap"
   >
-    <div v-for="(card, i) in cards" :key="card.id" class="flex flex-col items-center gap-1">
+    <div
+      v-for="(card, index) in cards"
+      :key="`${card.id}-${card.position}`"
+      class="flex flex-col items-center gap-1"
+    >
       <p
-        class="text-xs text-mystic-400 font-[family-name:var(--font-family-display)] uppercase tracking-widest mb-2 text-center max-w-[8rem]"
+        class="text-xs text-mystic-400 font-display uppercase tracking-widest mb-2 text-center max-w-[8rem]"
       >
         {{ card.position }}
       </p>
-      <TarotCard :card="card" :revealed="revealed" :delay="200 + i * 200" />
+      <TarotCard
+        :card="card"
+        :revealed="revealed"
+        :delay="delayFor(index)"
+        :instant-reveal="instantReveal"
+      />
     </div>
   </div>
 
-  <!-- Celtic Cross -->
-  <div v-else-if="spreadType === 'celtic-cross'" class="flex flex-col items-center gap-6">
+  <div v-else class="flex flex-col items-center gap-6 sm:gap-8 w-full">
     <div
-      class="relative w-[280px] h-[300px] sm:w-[360px] sm:h-[340px] lg:w-[420px] lg:h-[400px]"
-      style="width: clamp(280px, 80vw, 420px); height: clamp(300px, 85vw, 400px)"
+      class="relative mx-auto"
+      style="width: min(94vw, 420px); aspect-ratio: 7 / 6; max-height: 70vh"
     >
-      <!-- Card 1: Present (center) -->
       <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
         <div class="flex flex-col items-center gap-1">
           <p
-            class="text-[10px] sm:text-xs text-mystic-400 font-[family-name:var(--font-family-display)] uppercase tracking-widest"
+            class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[6rem] truncate"
           >
-            Present
+            {{ positionLabel(0) }}
           </p>
-          <TarotCard v-if="cards[0]" :card="cards[0]" :revealed="revealed" :delay="200" />
+          <TarotCard
+            v-if="celticCrossLeadCards[0]"
+            :card="celticCrossLeadCards[0]"
+            :revealed="revealed"
+            :delay="delayFor(0)"
+            :instant-reveal="instantReveal"
+            size="compact"
+          />
         </div>
       </div>
 
-      <!-- Card 2: Challenge (crossing, rotated) -->
       <div
         class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-90 z-10 pointer-events-none"
       >
-        <TarotCard v-if="cards[1]" :card="cards[1]" :revealed="revealed" :delay="400" />
+        <TarotCard
+          v-if="celticCrossLeadCards[1]"
+          :card="celticCrossLeadCards[1]"
+          :revealed="revealed"
+          :delay="delayFor(1)"
+          :instant-reveal="instantReveal"
+          size="compact"
+        />
       </div>
 
-      <!-- Card 3: Foundation (below) -->
       <div class="absolute left-1/2 bottom-0 -translate-x-1/2">
         <div class="flex flex-col items-center gap-1">
           <p
-            class="text-[10px] sm:text-xs text-mystic-400 font-[family-name:var(--font-family-display)] uppercase tracking-widest"
+            class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[6rem] truncate"
           >
-            Foundation
+            {{ positionLabel(2) }}
           </p>
-          <TarotCard v-if="cards[2]" :card="cards[2]" :revealed="revealed" :delay="600" />
+          <TarotCard
+            v-if="celticCrossLeadCards[2]"
+            :card="celticCrossLeadCards[2]"
+            :revealed="revealed"
+            :delay="delayFor(2)"
+            :instant-reveal="instantReveal"
+            size="compact"
+          />
         </div>
       </div>
 
-      <!-- Card 4: Recent Past (left) -->
       <div class="absolute left-0 top-1/2 -translate-y-1/2">
         <div class="flex flex-col items-center gap-1">
           <p
-            class="text-[10px] sm:text-xs text-mystic-400 font-[family-name:var(--font-family-display)] uppercase tracking-widest"
+            class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[5rem] truncate"
           >
-            Recent Past
+            {{ positionLabel(3) }}
           </p>
-          <TarotCard v-if="cards[3]" :card="cards[3]" :revealed="revealed" :delay="800" />
+          <TarotCard
+            v-if="celticCrossLeadCards[3]"
+            :card="celticCrossLeadCards[3]"
+            :revealed="revealed"
+            :delay="delayFor(3)"
+            :instant-reveal="instantReveal"
+            size="compact"
+          />
         </div>
       </div>
 
-      <!-- Card 5: Crown (above) -->
       <div class="absolute left-1/2 top-0 -translate-x-1/2">
         <div class="flex flex-col items-center gap-1">
           <p
-            class="text-[10px] sm:text-xs text-mystic-400 font-[family-name:var(--font-family-display)] uppercase tracking-widest"
+            class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[6rem] truncate"
           >
-            Crown
+            {{ positionLabel(4) }}
           </p>
-          <TarotCard v-if="cards[4]" :card="cards[4]" :revealed="revealed" :delay="1000" />
+          <TarotCard
+            v-if="celticCrossLeadCards[4]"
+            :card="celticCrossLeadCards[4]"
+            :revealed="revealed"
+            :delay="delayFor(4)"
+            :instant-reveal="instantReveal"
+            size="compact"
+          />
         </div>
       </div>
 
-      <!-- Card 6: Near Future (right) -->
       <div class="absolute right-0 top-1/2 -translate-y-1/2">
         <div class="flex flex-col items-center gap-1">
           <p
-            class="text-[10px] sm:text-xs text-mystic-400 font-[family-name:var(--font-family-display)] uppercase tracking-widest"
+            class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[5rem] truncate"
           >
-            Near Future
+            {{ positionLabel(5) }}
           </p>
-          <TarotCard v-if="cards[5]" :card="cards[5]" :revealed="revealed" :delay="1200" />
+          <TarotCard
+            v-if="celticCrossLeadCards[5]"
+            :card="celticCrossLeadCards[5]"
+            :revealed="revealed"
+            :delay="delayFor(5)"
+            :instant-reveal="instantReveal"
+            size="compact"
+          />
         </div>
       </div>
     </div>
 
-    <!-- Staff section (cards 7-10) -->
     <div class="flex gap-3 sm:gap-6 flex-wrap justify-center">
       <div
-        v-for="(card, i) in cards.slice(6, 10)"
-        :key="card.id"
+        v-for="(card, index) in celticCrossStaffCards"
+        :key="`${card.id}-${card.position}`"
         class="flex flex-col items-center gap-1"
       >
         <p
-          class="text-[10px] sm:text-xs text-mystic-400 font-[family-name:var(--font-family-display)] uppercase tracking-widest"
+          class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[6rem] truncate"
         >
           {{ card.position }}
         </p>
-        <TarotCard :card="card" :revealed="revealed" :delay="1400 + i * 200" />
+        <TarotCard
+          :card="card"
+          :revealed="revealed"
+          :delay="delayFor(index + 6)"
+          :instant-reveal="instantReveal"
+          size="compact"
+        />
       </div>
     </div>
   </div>

@@ -1,5 +1,5 @@
 {
-  "buildCommand": "nuxt build",
+  "buildCommand": "bun run migrate && bun run build",
   "outputDirectory": ".output/public",
   "framework": "nuxtjs"
 }

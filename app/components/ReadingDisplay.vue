@@ -1,13 +1,21 @@
 <script setup lang="ts">
-defineProps<{
-  text: string
-  isStreaming: boolean
-}>()
+withDefaults(
+  defineProps<{
+    text: string
+    isStreaming: boolean
+    error?: string | null
+    heading?: string
+  }>(),
+  {
+    error: null,
+    heading: 'Your Reading',
+  },
+)
 </script>
 
 <template>
   <div
-    v-if="text || isStreaming"
+    v-if="text || isStreaming || error"
     class="relative rounded-xl border border-mystic-600/30 bg-mystic-800/60 backdrop-blur-sm p-5 sm:p-8 reading-container"
   >
     <div
@@ -28,16 +36,28 @@ defineProps<{
     ></div>
 
     <div class="relative z-10">
-      <h3
-        class="font-[family-name:var(--font-family-display)] text-gold-400 text-lg mb-4 flex items-center gap-2"
-      >
-        <span class="text-gold-500/50">&#10022;</span>
-        Your Reading
-        <span class="text-gold-500/50">&#10022;</span>
+      <h3 class="font-display text-gold-400 text-lg mb-4 flex items-center gap-2">
+        <span class="text-gold-500/50" aria-hidden="true">&#10022;</span>
+        {{ heading }}
+        <span class="text-gold-500/50" aria-hidden="true">&#10022;</span>
       </h3>
-      <div class="text-mystic-200 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
+
+      <p
+        v-if="error"
+        class="mb-4 rounded-lg border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+        role="alert"
+      >
+        {{ error }}
+      </p>
+
+      <div
+        v-if="text || isStreaming"
+        class="text-mystic-200 leading-relaxed whitespace-pre-wrap text-sm sm:text-base"
+        aria-live="polite"
+        aria-atomic="false"
+      >
         {{ text
-        }}<span v-if="isStreaming" class="inline-flex ml-1"
+        }}<span v-if="isStreaming" class="inline-flex ml-1" aria-hidden="true"
           ><span class="animate-pulse text-gold-500">...</span></span
         >
       </div>
