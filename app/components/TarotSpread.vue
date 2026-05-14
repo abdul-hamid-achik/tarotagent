@@ -34,6 +34,9 @@ function delayFor(index: number) {
 function positionLabel(index: number) {
   return props.cards[index]?.position ?? spreadDefinitions[props.spreadType].positions[index] ?? ''
 }
+
+const celticPositionLabelClasses =
+  'text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[9rem] leading-tight'
 </script>
 
 <template>
@@ -79,82 +82,12 @@ function positionLabel(index: number) {
   </div>
 
   <div v-else class="flex flex-col items-center gap-6 sm:gap-8 w-full">
-    <div
-      class="relative mx-auto"
-      style="width: min(94vw, 420px); aspect-ratio: 7 / 6; max-height: 70vh"
-    >
-      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <div class="flex flex-col items-center gap-1">
-          <p
-            class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[6rem] truncate"
-          >
-            {{ positionLabel(0) }}
-          </p>
-          <TarotCard
-            v-if="celticCrossLeadCards[0]"
-            :card="celticCrossLeadCards[0]"
-            :revealed="revealed"
-            :delay="delayFor(0)"
-            :instant-reveal="instantReveal"
-            size="compact"
-          />
-        </div>
-      </div>
-
+    <div class="w-full overflow-x-auto pb-2">
       <div
-        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-90 z-10 pointer-events-none"
+        class="mx-auto grid min-w-[34rem] max-w-[44rem] grid-cols-[8rem_12rem_8rem] items-center justify-center gap-x-8 gap-y-8 sm:min-w-0 sm:grid-cols-[8rem_13rem_8rem] sm:gap-x-12 sm:gap-y-10"
       >
-        <TarotCard
-          v-if="celticCrossLeadCards[1]"
-          :card="celticCrossLeadCards[1]"
-          :revealed="revealed"
-          :delay="delayFor(1)"
-          :instant-reveal="instantReveal"
-          size="compact"
-        />
-      </div>
-
-      <div class="absolute left-1/2 bottom-0 -translate-x-1/2">
-        <div class="flex flex-col items-center gap-1">
-          <p
-            class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[6rem] truncate"
-          >
-            {{ positionLabel(2) }}
-          </p>
-          <TarotCard
-            v-if="celticCrossLeadCards[2]"
-            :card="celticCrossLeadCards[2]"
-            :revealed="revealed"
-            :delay="delayFor(2)"
-            :instant-reveal="instantReveal"
-            size="compact"
-          />
-        </div>
-      </div>
-
-      <div class="absolute left-0 top-1/2 -translate-y-1/2">
-        <div class="flex flex-col items-center gap-1">
-          <p
-            class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[5rem] truncate"
-          >
-            {{ positionLabel(3) }}
-          </p>
-          <TarotCard
-            v-if="celticCrossLeadCards[3]"
-            :card="celticCrossLeadCards[3]"
-            :revealed="revealed"
-            :delay="delayFor(3)"
-            :instant-reveal="instantReveal"
-            size="compact"
-          />
-        </div>
-      </div>
-
-      <div class="absolute left-1/2 top-0 -translate-x-1/2">
-        <div class="flex flex-col items-center gap-1">
-          <p
-            class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[6rem] truncate"
-          >
+        <div class="col-start-2 row-start-1 flex flex-col items-center gap-1">
+          <p :class="celticPositionLabelClasses">
             {{ positionLabel(4) }}
           </p>
           <TarotCard
@@ -166,13 +99,57 @@ function positionLabel(index: number) {
             size="compact"
           />
         </div>
-      </div>
 
-      <div class="absolute right-0 top-1/2 -translate-y-1/2">
-        <div class="flex flex-col items-center gap-1">
+        <div class="col-start-1 row-start-2 flex flex-col items-center gap-1">
+          <p :class="celticPositionLabelClasses">
+            {{ positionLabel(3) }}
+          </p>
+          <TarotCard
+            v-if="celticCrossLeadCards[3]"
+            :card="celticCrossLeadCards[3]"
+            :revealed="revealed"
+            :delay="delayFor(3)"
+            :instant-reveal="instantReveal"
+            size="compact"
+          />
+        </div>
+
+        <div class="col-start-2 row-start-2 flex flex-col items-center gap-1">
+          <p :class="celticPositionLabelClasses">
+            {{ positionLabel(0) }}
+          </p>
+          <div class="relative flex min-h-[8rem] min-w-[12rem] items-center justify-center">
+            <TarotCard
+              v-if="celticCrossLeadCards[0]"
+              :card="celticCrossLeadCards[0]"
+              :revealed="revealed"
+              :delay="delayFor(0)"
+              :instant-reveal="instantReveal"
+              size="compact"
+            />
+            <div
+              class="pointer-events-none absolute left-1/2 top-[4.25rem] z-10 -translate-x-1/2 -translate-y-1/2 rotate-90 sm:top-[5.625rem]"
+            >
+              <TarotCard
+                v-if="celticCrossLeadCards[1]"
+                :card="celticCrossLeadCards[1]"
+                :revealed="revealed"
+                :delay="delayFor(1)"
+                :instant-reveal="instantReveal"
+                size="compact"
+                :show-label="false"
+              />
+            </div>
+          </div>
           <p
-            class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[5rem] truncate"
+            class="relative z-20 rounded-full border border-mystic-700/60 bg-mystic-950/70 px-2 py-0.5 text-[10px] text-mystic-300"
           >
+            {{ positionLabel(1) }}
+          </p>
+        </div>
+
+        <div class="col-start-3 row-start-2 flex flex-col items-center gap-1">
+          <p :class="celticPositionLabelClasses">
             {{ positionLabel(5) }}
           </p>
           <TarotCard
@@ -180,6 +157,20 @@ function positionLabel(index: number) {
             :card="celticCrossLeadCards[5]"
             :revealed="revealed"
             :delay="delayFor(5)"
+            :instant-reveal="instantReveal"
+            size="compact"
+          />
+        </div>
+
+        <div class="col-start-2 row-start-3 flex flex-col items-center gap-1">
+          <p :class="celticPositionLabelClasses">
+            {{ positionLabel(2) }}
+          </p>
+          <TarotCard
+            v-if="celticCrossLeadCards[2]"
+            :card="celticCrossLeadCards[2]"
+            :revealed="revealed"
+            :delay="delayFor(2)"
             :instant-reveal="instantReveal"
             size="compact"
           />
@@ -193,9 +184,7 @@ function positionLabel(index: number) {
         :key="`${card.id}-${card.position}`"
         class="flex flex-col items-center gap-1"
       >
-        <p
-          class="text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[6rem] truncate"
-        >
+        <p :class="celticPositionLabelClasses">
           {{ card.position }}
         </p>
         <TarotCard

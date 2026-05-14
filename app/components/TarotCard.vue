@@ -8,12 +8,14 @@ const props = withDefaults(
     delay?: number
     instantReveal?: boolean
     size?: 'default' | 'compact'
+    showLabel?: boolean
   }>(),
   {
     revealed: false,
     delay: 0,
     instantReveal: false,
     size: 'default',
+    showLabel: true,
   },
 )
 
@@ -97,6 +99,7 @@ onUnmounted(() => {
     </div>
 
     <div
+      v-if="showLabel"
       class="text-center transition-opacity duration-500"
       :class="[flipped ? 'opacity-100' : 'opacity-0', labelSizeClasses]"
       :aria-hidden="!flipped"
