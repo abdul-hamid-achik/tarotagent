@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 const EMPTY_RUNTIME_CONFIG = {
   databaseUrl: '',
-  anthropicApiKey: '',
+  aiGatewayApiKey: '',
   resendApiKey: '',
   resendFromEmail: '',
   redisRestUrl: '',
@@ -16,7 +16,7 @@ const EMPTY_RUNTIME_CONFIG = {
 
 describe('runtime environment helpers', () => {
   const originalEnv = {
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    aiGatewayApiKey: process.env.AI_GATEWAY_API_KEY,
     databaseUrl: process.env.DATABASE_URL,
     resendApiKey: process.env.RESEND_API_KEY,
     resendFromEmail: process.env.RESEND_FROM_EMAIL,
@@ -33,7 +33,7 @@ describe('runtime environment helpers', () => {
     ;(globalThis as { useRuntimeConfig?: () => unknown }).useRuntimeConfig = () =>
       EMPTY_RUNTIME_CONFIG
 
-    process.env.ANTHROPIC_API_KEY = 'runtime-anthropic-key'
+    process.env.AI_GATEWAY_API_KEY = 'runtime-ai-gateway-key'
     process.env.DATABASE_URL = 'postgres://runtime-database-url'
     process.env.RESEND_API_KEY = 'runtime-resend-key'
     process.env.RESEND_FROM_EMAIL = 'Tarot Agent <no-reply@example.com>'
@@ -47,8 +47,8 @@ describe('runtime environment helpers', () => {
   })
 
   afterEach(() => {
-    if (originalEnv.anthropicApiKey === undefined) delete process.env.ANTHROPIC_API_KEY
-    else process.env.ANTHROPIC_API_KEY = originalEnv.anthropicApiKey
+    if (originalEnv.aiGatewayApiKey === undefined) delete process.env.AI_GATEWAY_API_KEY
+    else process.env.AI_GATEWAY_API_KEY = originalEnv.aiGatewayApiKey
 
     if (originalEnv.databaseUrl === undefined) delete process.env.DATABASE_URL
     else process.env.DATABASE_URL = originalEnv.databaseUrl
@@ -86,7 +86,7 @@ describe('runtime environment helpers', () => {
       getValidatedRuntimeConfig,
       hasDatabase,
       isEmailDeliveryConfigured,
-      requireAnthropicApiKey,
+      requireAiGatewayApiKey,
       requireResendConfig,
     } = await import('../../server/utils/env')
 
@@ -94,7 +94,7 @@ describe('runtime environment helpers', () => {
 
     expect(config).toMatchObject({
       databaseUrl: 'postgres://runtime-database-url',
-      anthropicApiKey: 'runtime-anthropic-key',
+      aiGatewayApiKey: 'runtime-ai-gateway-key',
       resendApiKey: 'runtime-resend-key',
       resendFromEmail: 'Tarot Agent <no-reply@example.com>',
       redisRestUrl: 'https://runtime-redis.upstash.io',
@@ -106,7 +106,7 @@ describe('runtime environment helpers', () => {
       },
     })
     expect(hasDatabase()).toBe(true)
-    expect(requireAnthropicApiKey()).toBe('runtime-anthropic-key')
+    expect(requireAiGatewayApiKey()).toBe('runtime-ai-gateway-key')
     expect(requireResendConfig()).toEqual({
       apiKey: 'runtime-resend-key',
       fromEmail: 'Tarot Agent <no-reply@example.com>',

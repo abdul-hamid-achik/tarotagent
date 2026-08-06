@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { ClientConfig } from '~~/shared/config'
+import { computed, ref } from 'vue'
+import type { ClientConfig } from '../../shared/config'
 
 withDefaults(
   defineProps<{
@@ -88,20 +89,27 @@ function handleNewReading() {
       </UButton>
     </div>
 
-    <div v-if="shareUrl && emailEnabled" class="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-      <UInput
-        v-model="emailAddress"
-        type="email"
-        autocomplete="email"
-        inputmode="email"
-        placeholder="Send this reading by email"
-        :disabled="isSendingEmail"
-        class="sm:flex-1"
-        @keyup.enter="handleEmailRequest"
-      />
+    <div v-if="shareUrl && emailEnabled" class="flex flex-col gap-2 sm:flex-row sm:items-end">
+      <div class="grid flex-1 gap-1.5">
+        <label for="reading-email" class="text-xs font-medium text-mystic-300">
+          Send a copy by email
+        </label>
+        <UInput
+          id="reading-email"
+          v-model="emailAddress"
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          placeholder="you@example.com"
+          aria-label="Send this reading by email"
+          :disabled="isSendingEmail"
+          @keyup.enter="handleEmailRequest"
+        />
+      </div>
       <UButton
         :loading="isSendingEmail"
         :disabled="isSendingEmail || !emailLooksValid"
+        class="justify-center sm:min-w-24"
         @click="handleEmailRequest"
       >
         Email

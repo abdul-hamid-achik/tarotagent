@@ -3,7 +3,7 @@ const currentYear = new Date().getFullYear()
 </script>
 
 <template>
-  <div class="stars-bg min-h-screen flex flex-col">
+  <div class="stars-bg min-h-[100dvh] flex flex-col">
     <div class="grain-overlay" aria-hidden="true"></div>
 
     <header class="relative border-b border-mystic-700/50 px-6 py-4">
@@ -11,10 +11,18 @@ const currentYear = new Date().getFullYear()
         class="absolute inset-0 bg-gradient-to-b from-mystic-800/50 to-transparent pointer-events-none"
       ></div>
       <div class="mx-auto max-w-5xl flex items-center justify-center relative">
-        <h1 class="font-display text-2xl font-semibold text-gold-500 tracking-wide relative">
-          <span class="relative z-10">Tarot Agent</span>
-          <span class="absolute inset-0 blur-md opacity-50 text-gold-400">Tarot Agent</span>
-        </h1>
+        <NuxtLink
+          to="/"
+          class="rounded-sm focus:outline-none focus:ring-2 focus:ring-gold-500/60 focus:ring-offset-4 focus:ring-offset-mystic-900"
+          aria-label="Tarot Agent home"
+        >
+          <h1 class="font-display text-2xl font-semibold text-gold-500 tracking-wide relative">
+            <span class="relative z-10">Tarot Agent</span>
+            <span aria-hidden="true" class="absolute inset-0 blur-md opacity-50 text-gold-400">
+              Tarot Agent
+            </span>
+          </h1>
+        </NuxtLink>
       </div>
     </header>
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { ReadingCard } from '~~/shared/tarot'
+import { computed, onUnmounted, ref, watch } from 'vue'
+import type { ReadingCard } from '../../shared/tarot'
 
 const props = withDefaults(
   defineProps<{
@@ -89,7 +90,7 @@ onUnmounted(() => {
         >
           <img
             :src="card.image"
-            :alt="card.name"
+            :alt="`${card.name}${card.reversed ? ', reversed' : ''}`"
             loading="lazy"
             class="w-full h-full object-cover"
             :class="{ 'rotate-180': card.reversed }"

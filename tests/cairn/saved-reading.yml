@@ -1,0 +1,96 @@
+version: 1
+name: saved_reading_actions
+intent: A completed reading can be reopened, replayed, and emailed from its
+  public link.
+coldStart: guest
+
+metadata:
+  tags:
+    - smoke
+    - tarot
+    - persistence
+
+outcomes:
+  - id: saved_reading_loaded
+    description: The public reading link loads the completed reading.
+    verify:
+      text:
+        contains: Saved Reading
+
+  - id: reading_question_persisted
+    description: The original question remains attached to the saved reading.
+    verify:
+      text:
+        contains: What should I focus on next?
+
+  - id: replay_completed
+    description: A saved reading can be replayed to completion.
+    verify:
+      text:
+        contains: The pattern here says the moment is not asking for spectacle but for
+          steadiness.
+
+  - id: email_request_succeeded
+    description: The email action returns successfully in the test environment.
+    verify:
+      network:
+        method: POST
+        urlContains: /email
+        status:
+          equals: 200
+
+steps:
+  - open:
+      path: /
+      waitUntil: networkidle
+  - fill:
+      by: label
+      name: Your question
+      value: What should I focus on next?
+  - click:
+      by: role
+      role: button
+      name: Three Card
+  - click:
+      by: role
+      role: button
+      name: Draw Cards
+  - wait:
+      text: The pattern here says the moment is not asking for spectacle but for
+        steadiness.
+      timeoutMs: 15000
+  - wait:
+      text: Saved reading
+      timeoutMs: 15000
+  - eval:
+      js: |
+        const shareUrl = document.querySelector('[data-share-url]')?.getAttribute('data-share-url')
+        const match = shareUrl?.match(/\/r\/([a-f0-9]{12})/i)
+        return match?.[1] ?? null
+      assign: shareSlug
+  - open:
+      path: /r/${evals.shareSlug.value}
+      waitUntil: networkidle
+  - wait:
+      text: Saved Reading
+      timeoutMs: 10000
+  - click:
+      by: role
+      role: button
+      name: Replay
+  - wait:
+      text: The pattern here says the moment is not asking for spectacle but for
+        steadiness.
+      timeoutMs: 15000
+  - fill:
+      by: selector
+      selector: 'input[aria-label="Send this reading by email"]'
+      value: seer@example.com
+  - click:
+      by: role
+      role: button
+      name: Email
+  - wait:
+      text: Reading emailed successfully.
+      timeoutMs: 10000
+contractHash: sha256:391e385733a7e9986d8f257a039dd105b0a35731f4ced98b59b13e56b26a7d63

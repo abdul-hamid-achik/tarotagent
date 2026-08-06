@@ -35,7 +35,19 @@ withDefaults(
       <p class="text-sm text-mystic-300">
         {{ spreadDescription }}
       </p>
-      <p v-if="shareUrl" class="text-xs text-mystic-400 break-all">Saved reading: {{ shareUrl }}</p>
+      <div
+        v-if="shareUrl"
+        class="flex flex-wrap items-center gap-2 text-xs text-mystic-300"
+        :data-share-url="shareUrl"
+      >
+        <span
+          class="rounded-full border border-gold-500/30 bg-gold-500/10 px-2.5 py-1 text-gold-300"
+        >
+          Saved reading
+        </span>
+        <span>Link ready to share</span>
+        <span v-if="shareSlug" class="text-mystic-400">Ref {{ shareSlug }}</span>
+      </div>
     </div>
   </section>
 </template>

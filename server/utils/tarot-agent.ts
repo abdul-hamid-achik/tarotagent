@@ -1,15 +1,22 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { createGateway, streamText } from 'ai'
 import { spreadDefinitions, tarotDeck } from './tarot-data'
 import type { DrawnCard, SpreadType, TarotCard } from './tarot-data'
 import { isTestMode } from './env'
+import {
+  DEFAULT_TAROT_FALLBACK_MODELS,
+  DEFAULT_TAROT_MODEL,
+  normalizeAiGatewayError,
+} from './ai-gateway'
 
 type ReadingStreamEvent = Record<string, unknown>
 
 type CreateReadingStreamOptions = {
-  apiKey: string
+  gatewayApiKey: string
   question: string
   spreadType: SpreadType
   cards: DrawnCard[]
+  gatewayUser?: string
+  appUrl?: string
   initialEvents?: ReadingStreamEvent[]
   onFirstTextChunk?: () => Promise<void> | void
   onComplete?: (finalText: string) => Promise<void> | void
@@ -159,24 +166,39 @@ export async function createReadingStream(
             await wait(20)
           }
         } else {
-          const client = new Anthropic({ apiKey: options.apiKey })
-          const anthropicStream = client.messages.stream({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 2048,
+          const gateway = createGateway({
+            apiKey: options.gatewayApiKey,
+            headers: {
+              'x-title': 'Tarot Agent',
+              ...(options.appUrl ? { 'http-referer': options.appUrl } : {}),
+            },
+          })
+          const readingStream = streamText({
+            model: gateway(DEFAULT_TAROT_MODEL),
+            maxOutputTokens: 2048,
+            maxRetries: 1,
+            temperature: 0.85,
             system: systemPrompt,
-            messages: [{ role: 'user', content: userMessage }],
+            prompt: userMessage,
+            providerOptions: {
+              gateway: {
+                models: [...DEFAULT_TAROT_FALLBACK_MODELS],
+                sort: 'cost',
+                caching: 'auto',
+                tags: ['feature:tarot-reading', `spread:${options.spreadType}`],
+                ...(options.gatewayUser ? { user: options.gatewayUser } : {}),
+              },
+            },
           })
 
-          for await (const event of anthropicStream) {
-            if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-              if (!streamedTextStarted) {
-                streamedTextStarted = true
-                await options.onFirstTextChunk?.()
-              }
-
-              finalText += event.delta.text
-              pushEvent({ type: 'text', content: event.delta.text })
+          for await (const textChunk of readingStream.textStream) {
+            if (!streamedTextStarted) {
+              streamedTextStarted = true
+              await options.onFirstTextChunk?.()
             }
+
+            finalText += textChunk
+            pushEvent({ type: 'text', content: textChunk })
           }
         }
 
@@ -187,7 +209,7 @@ export async function createReadingStream(
           completedAt: new Date().toISOString(),
         })
       } catch (error) {
-        const normalizedError = error instanceof Error ? error : new Error('Unknown error')
+        const normalizedError = normalizeAiGatewayError(error)
 
         try {
           await options.onError?.(normalizedError, finalText)

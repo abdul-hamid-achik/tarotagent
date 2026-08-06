@@ -1,0 +1,67 @@
+version: 1
+name: tarot_reading_smoke
+intent: A visitor can submit a focused question and receive a completed tarot reading.
+coldStart: guest
+
+metadata:
+  tags:
+    - smoke
+    - tarot
+
+outcomes:
+  - id: landing_page_ready
+    description: The public landing page exposes the reading entry point.
+    verify:
+      text:
+        contains: Consult the Cards
+
+  - id: reading_request_succeeded
+    description: The reading request returns successfully.
+    verify:
+      network:
+        method: POST
+        urlContains: /api/reading
+        status:
+          equals: 200
+
+  - id: completed_reading_visible
+    description: The resulting reading is visible to the visitor.
+    verify:
+      text:
+        contains: Your Reading
+
+  - id: browser_console_is_clean
+    description: The smoke flow does not produce browser console errors.
+    verify:
+      console:
+        errorsMax: 0
+
+  - id: requests_do_not_fail
+    description: The smoke flow does not produce failed network requests.
+    verify:
+      noFailedRequests:
+        urlContains: /
+
+steps:
+  - open:
+      path: /
+      waitUntil: networkidle
+  - fill:
+      by: label
+      name: Your question
+      value: What should I focus on next?
+  - click:
+      by: role
+      role: button
+      name: Three Card
+  - click:
+      by: role
+      role: button
+      name: Draw Cards
+  - wait:
+      text: Your Reading
+      timeoutMs: 15000
+  - wait:
+      text: Share
+      timeoutMs: 15000
+contractHash: sha256:5c7dfe2c85a334387949104bf5be6306be5a2c0799b7d365fc4e1d4a1e4faa71

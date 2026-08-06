@@ -5,7 +5,7 @@ describe('persistence service', () => {
     process.env.TAROT_AGENT_TEST_MODE = '1'
     ;(globalThis as { useRuntimeConfig?: () => unknown }).useRuntimeConfig = () => ({
       databaseUrl: '',
-      anthropicApiKey: '',
+      aiGatewayApiKey: '',
       resendApiKey: '',
       resendFromEmail: '',
       redisRestUrl: '',

@@ -40,6 +40,7 @@ const displayName = ref('')
 const loginEmail = ref('')
 const loginCode = ref('')
 const loginCodeRequested = ref(false)
+const guestExpanded = ref(false)
 
 const emailLooksValid = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()))
 const loginEmailLooksValid = computed(() =>
@@ -168,125 +169,194 @@ function verifyLoginCode() {
       </p>
     </div>
 
-    <div v-else class="relative flex flex-col gap-4">
-      <div class="flex items-center gap-3">
-        <img
-          src="/cards/back.png"
-          alt=""
-          class="h-16 w-[2.84375rem] rounded-md border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
-          aria-hidden="true"
-        />
-        <div>
-          <p class="font-display text-sm uppercase tracking-widest text-gold-300">Saved Readings</p>
-          <p class="mt-1 text-sm leading-relaxed text-mystic-300">
-            Keep completed readings tied to this browser.
-          </p>
-        </div>
-      </div>
-
-      <div
-        v-if="canRestore"
-        class="grid grid-cols-2 gap-2 rounded-lg border border-mystic-700/50 bg-mystic-950/35 p-1"
+    <div v-else class="relative">
+      <button
+        v-if="!guestExpanded"
+        type="button"
+        class="flex min-h-16 w-full items-center justify-between gap-4 text-left focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:ring-offset-4 focus:ring-offset-mystic-900"
+        aria-controls="guest-account-panel"
+        :aria-expanded="guestExpanded"
+        @click="guestExpanded = true"
       >
-        <button
-          type="button"
-          class="min-h-10 rounded-md px-3 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500/40"
-          :class="
-            mode === 'create'
-              ? 'bg-gold-500 text-mystic-950'
-              : 'text-mystic-300 hover:bg-mystic-800/70 hover:text-mystic-100'
-          "
-          @click="mode = 'create'"
-        >
-          Create
-        </button>
-        <button
-          type="button"
-          class="min-h-10 rounded-md px-3 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500/40"
-          :class="
-            mode === 'restore'
-              ? 'bg-gold-500 text-mystic-950'
-              : 'text-mystic-300 hover:bg-mystic-800/70 hover:text-mystic-100'
-          "
-          @click="mode = 'restore'"
-        >
-          Restore
-        </button>
-      </div>
-
-      <form
-        v-if="mode === 'create' || !canRestore"
-        class="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
-        @submit.prevent="saveAccount"
-      >
-        <UInput
-          v-model="email"
-          type="email"
-          autocomplete="email"
-          inputmode="email"
-          placeholder="Email"
-          aria-label="Email"
-          :disabled="isSaving"
-        />
-        <UInput
-          v-model="displayName"
-          autocomplete="name"
-          placeholder="Name"
-          aria-label="Name"
-          :disabled="isSaving"
-        />
-        <UButton
-          type="submit"
-          :loading="isSaving"
-          :disabled="isSaving || !emailLooksValid"
-          class="justify-center"
-        >
-          Save
-        </UButton>
-      </form>
-
-      <form v-else-if="canRestore" class="grid gap-3" @submit.prevent="verifyLoginCode">
-        <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-          <UInput
-            v-model="loginEmail"
-            type="email"
-            autocomplete="email"
-            inputmode="email"
-            placeholder="Email"
-            aria-label="Archive email"
-            :disabled="isSaving"
+        <span class="flex items-center gap-3">
+          <img
+            src="/cards/back.png"
+            alt=""
+            class="h-12 w-[2.125rem] rounded-md border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
+            aria-hidden="true"
           />
+          <span>
+            <span class="flex flex-wrap items-center gap-2">
+              <span class="font-display text-sm uppercase tracking-widest text-gold-300">
+                Save your readings
+              </span>
+              <span
+                class="rounded-full border border-mystic-700/60 px-2 py-0.5 text-[10px] uppercase tracking-widest text-mystic-400"
+              >
+                Optional
+              </span>
+            </span>
+            <span class="mt-1 block text-sm text-mystic-300">
+              Keep an archive in this browser and restore it by email.
+            </span>
+          </span>
+        </span>
+        <span class="shrink-0 text-sm font-medium text-gold-300">Set up</span>
+      </button>
+
+      <div v-else id="guest-account-panel" class="flex flex-col gap-4">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <img
+              src="/cards/back.png"
+              alt=""
+              class="h-16 w-[2.84375rem] rounded-md border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
+              aria-hidden="true"
+            />
+            <div>
+              <p class="font-display text-sm uppercase tracking-widest text-gold-300">
+                Saved Readings
+              </p>
+              <p class="mt-1 text-sm leading-relaxed text-mystic-300">
+                Keep completed readings tied to this browser.
+              </p>
+            </div>
+          </div>
           <UButton
             type="button"
-            :loading="isSaving"
-            :disabled="isSaving || !loginEmailLooksValid"
-            class="justify-center"
-            @click="requestLoginCode"
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            @click="guestExpanded = false"
           >
-            Send code
+            Maybe later
           </UButton>
         </div>
 
-        <div v-if="loginCodeRequested" class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-          <UInput
-            v-model="loginCode"
-            autocomplete="one-time-code"
-            inputmode="numeric"
-            maxlength="6"
-            placeholder="6-digit code"
-            aria-label="Login code"
-            :disabled="isSaving"
-          />
+        <div
+          v-if="canRestore"
+          class="grid grid-cols-2 gap-2 rounded-lg border border-mystic-700/50 bg-mystic-950/35 p-1"
+          role="group"
+          aria-label="Reading archive actions"
+        >
+          <button
+            type="button"
+            class="min-h-10 rounded-md px-3 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500/40"
+            :class="
+              mode === 'create'
+                ? 'bg-gold-500 text-mystic-950'
+                : 'text-mystic-300 hover:bg-mystic-800/70 hover:text-mystic-100'
+            "
+            :aria-pressed="mode === 'create'"
+            @click="mode = 'create'"
+          >
+            Create
+          </button>
+          <button
+            type="button"
+            class="min-h-10 rounded-md px-3 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500/40"
+            :class="
+              mode === 'restore'
+                ? 'bg-gold-500 text-mystic-950'
+                : 'text-mystic-300 hover:bg-mystic-800/70 hover:text-mystic-100'
+            "
+            :aria-pressed="mode === 'restore'"
+            @click="mode = 'restore'"
+          >
+            Restore
+          </button>
+        </div>
+
+        <form
+          v-if="mode === 'create' || !canRestore"
+          class="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+          @submit.prevent="saveAccount"
+        >
+          <div class="grid gap-1.5">
+            <label for="archive-email" class="text-xs font-medium text-mystic-300">Email</label>
+            <UInput
+              id="archive-email"
+              v-model="email"
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              placeholder="you@example.com"
+              :disabled="isSaving"
+            />
+          </div>
+          <div class="grid gap-1.5">
+            <label for="archive-name" class="text-xs font-medium text-mystic-300">Name</label>
+            <UInput
+              id="archive-name"
+              v-model="displayName"
+              autocomplete="name"
+              placeholder="Optional"
+              :disabled="isSaving"
+            />
+          </div>
           <UButton
             type="submit"
             :loading="isSaving"
-            :disabled="isSaving || !loginEmailLooksValid || !loginCodeLooksValid"
+            :disabled="isSaving || !emailLooksValid"
             class="justify-center"
           >
-            Verify
+            Save
           </UButton>
-        </div>
-      </form>
+        </form>
+
+        <form v-else-if="canRestore" class="grid gap-3" @submit.prevent="verifyLoginCode">
+          <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div class="grid gap-1.5">
+              <label for="archive-login-email" class="text-xs font-medium text-mystic-300">
+                Archive email
+              </label>
+              <UInput
+                id="archive-login-email"
+                v-model="loginEmail"
+                type="email"
+                autocomplete="email"
+                inputmode="email"
+                placeholder="you@example.com"
+                :disabled="isSaving"
+              />
+            </div>
+            <UButton
+              type="button"
+              :loading="isSaving"
+              :disabled="isSaving || !loginEmailLooksValid"
+              class="justify-center"
+              @click="requestLoginCode"
+            >
+              Send code
+            </UButton>
+          </div>
+
+          <div v-if="loginCodeRequested" class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div class="grid gap-1.5">
+              <label for="archive-login-code" class="text-xs font-medium text-mystic-300">
+                Verification code
+              </label>
+              <UInput
+                id="archive-login-code"
+                v-model="loginCode"
+                autocomplete="one-time-code"
+                inputmode="numeric"
+                maxlength="6"
+                placeholder="6 digits"
+                :disabled="isSaving"
+              />
+            </div>
+            <UButton
+              type="submit"
+              :loading="isSaving"
+              :disabled="isSaving || !loginEmailLooksValid || !loginCodeLooksValid"
+              class="justify-center"
+            >
+              Verify
+            </UButton>
+          </div>
+        </form>
+      </div>
     </div>
 
     <TransitionGroup name="fade">

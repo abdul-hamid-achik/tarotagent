@@ -11,7 +11,7 @@ import {
   toReadingCard,
 } from '../services/persistence'
 import { createReadingStream, drawCards } from '../utils/tarot-agent'
-import { requireAnthropicApiKey } from '../utils/env'
+import { getValidatedRuntimeConfig, requireAiGatewayApiKey } from '../utils/env'
 import { assertRateLimit } from '../utils/rate-limit'
 import { getAccountSessionToken, getOrCreateAnonymousSessionId } from '../utils/session'
 
@@ -55,7 +55,8 @@ export default defineEventHandler(async (event) => {
   })
 
   try {
-    const apiKey = requireAnthropicApiKey(event)
+    const gatewayApiKey = requireAiGatewayApiKey(event)
+    const runtimeConfig = getValidatedRuntimeConfig(event)
     const cards = drawCards(spreadType, `${question}:${spreadType}`)
     const revealTimingsMs = getSpreadRevealTimings(spreadType)
 
@@ -66,10 +67,12 @@ export default defineEventHandler(async (event) => {
     })
 
     const stream = await createReadingStream({
-      apiKey,
+      gatewayApiKey,
       question,
       spreadType,
       cards,
+      gatewayUser: account?.id ?? sessionId,
+      appUrl: runtimeConfig.public.siteUrl,
       initialEvents: [
         { type: 'reading', reading },
         {

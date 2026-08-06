@@ -7,7 +7,7 @@ import { useReadingAnalytics } from '~/composables/useReadingAnalytics'
 useSeoMeta({
   title: 'Tarot Agent — Free AI Tarot Readings Online',
   description:
-    'Get a free AI-powered tarot reading. Choose from Single Card, Yes/No, Three Card, Love, Career, or Celtic Cross spreads with a full 78-card deck and streaming interpretations by Claude AI.',
+    'Get a free AI-powered tarot reading. Choose from Single Card, Yes/No, Three Card, Love, Career, or Celtic Cross spreads with a full 78-card deck and streaming interpretations by Aurelia.',
 })
 
 const { trackEvent } = useReadingAnalytics()
@@ -57,7 +57,7 @@ const {
 
 const isHydrated = ref(false)
 const canRestoreArchive = computed(() => Boolean(clientConfig.value?.emailEnabled))
-const hasReading = computed(() => cards.value.length > 0)
+const hasReading = computed(() => cards.value.length > 0 || isLoading.value)
 const canDraw = computed(
   () => isHydrated.value && question.value.trim().length > 0 && !isLoading.value,
 )
@@ -65,6 +65,11 @@ const isCompleted = computed(
   () => readingStatus.value === 'completed' && finalText.value.length > 0,
 )
 const isFailed = computed(() => readingStatus.value === 'failed')
+const promptSuggestions = [
+  'What should I focus on next?',
+  'What am I not seeing clearly?',
+  'What energy should I work with?',
+]
 
 const questionStartedTracked = ref(false)
 
@@ -100,6 +105,10 @@ function selectSpread(nextSpreadType: SpreadType) {
       spreadType: nextSpreadType,
     },
   })
+}
+
+function usePromptSuggestion(prompt: string) {
+  question.value = prompt
 }
 
 async function handleStartReading() {
@@ -226,21 +235,6 @@ function handleAccountLogout() {
       </p>
     </section>
 
-    <AccountPanel
-      :account="account"
-      :readings="accountReadings"
-      :is-loading="!isHydrated || isAccountLoading"
-      :is-saving="isAccountSaving"
-      :can-restore="canRestoreArchive"
-      :message="accountMessage"
-      :error="accountError"
-      class="max-w-2xl"
-      @save="handleAccountSave"
-      @login-request="handleAccountLoginRequest"
-      @login-verify="handleAccountLoginVerify"
-      @logout="handleAccountLogout"
-    />
-
     <Transition
       enter-active-class="transition-all duration-500 ease-out"
       enter-from-class="opacity-0 -translate-y-4"
@@ -251,16 +245,50 @@ function handleAccountLogout() {
       mode="out-in"
     >
       <section v-if="!hasReading" key="input" class="w-full max-w-lg flex flex-col gap-6">
-        <UTextarea
-          v-model="question"
-          placeholder="What wisdom do you seek?"
-          :rows="3"
-          autoresize
-          size="lg"
-          class="w-full"
-          :disabled="!isHydrated || isLoading"
-          aria-label="Your tarot question"
-        />
+        <div class="grid gap-2">
+          <label for="reading-question" class="text-left text-sm font-medium text-mystic-200">
+            Your question
+          </label>
+          <div
+            class="rounded-xl border border-mystic-600/60 bg-mystic-800/45 p-3 shadow-inner shadow-mystic-950/40 transition-colors focus-within:border-gold-500/60 focus-within:bg-mystic-800/65"
+          >
+            <UTextarea
+              id="reading-question"
+              v-model="question"
+              placeholder="What wisdom do you seek?"
+              :rows="3"
+              :maxlength="500"
+              autoresize
+              size="lg"
+              class="w-full"
+              :disabled="!isHydrated || isLoading"
+              aria-describedby="reading-question-hint"
+            />
+          </div>
+          <div
+            id="reading-question-hint"
+            class="flex items-center justify-between gap-3 text-xs text-mystic-300"
+          >
+            <span>Ask one focused question for a clearer reading.</span>
+            <span class="shrink-0 tabular-nums">{{ question.length }}/500</span>
+          </div>
+          <div
+            v-if="!question.trim()"
+            class="flex flex-wrap items-center gap-2 pt-1"
+            aria-label="Example questions"
+          >
+            <span class="text-xs text-mystic-400">Try:</span>
+            <button
+              v-for="prompt in promptSuggestions"
+              :key="prompt"
+              type="button"
+              class="rounded-full border border-mystic-600/60 px-3 py-1.5 text-left text-xs text-mystic-300 transition-colors hover:border-gold-500/50 hover:text-gold-300 focus:outline-none focus:ring-2 focus:ring-gold-500/50 active:scale-[0.98]"
+              @click="usePromptSuggestion(prompt)"
+            >
+              {{ prompt }}
+            </button>
+          </div>
+        </div>
 
         <div class="rounded-xl border border-mystic-600/30 bg-mystic-800/40 p-4 sm:p-5">
           <div class="flex flex-col items-center gap-4">
@@ -272,6 +300,7 @@ function handleAccountLogout() {
                 class="flex flex-wrap justify-center gap-2 w-full"
                 role="group"
                 aria-label="Select spread type"
+                aria-describedby="spread-description"
               >
                 <button
                   v-for="option in spreadOptions"
@@ -295,7 +324,7 @@ function handleAccountLogout() {
               <p class="font-display text-gold-300 text-sm">
                 {{ spreadName }}
               </p>
-              <p class="text-sm text-mystic-300 mt-1">
+              <p id="spread-description" class="text-sm text-mystic-300 mt-1">
                 {{ spreadDescription }}
               </p>
             </div>
@@ -304,7 +333,7 @@ function handleAccountLogout() {
               size="lg"
               :loading="isLoading"
               :disabled="!canDraw"
-              class="mt-2 px-8"
+              class="mt-2 w-full px-8 sm:w-auto"
               @click="handleStartReading"
             >
               <template #leading>
@@ -312,6 +341,9 @@ function handleAccountLogout() {
               </template>
               Draw Cards
             </UButton>
+            <p class="text-center text-xs text-mystic-400">
+              No account required to begin. Save a reading whenever you are ready.
+            </p>
           </div>
         </div>
 
@@ -377,5 +409,20 @@ function handleAccountLogout() {
         </div>
       </section>
     </Transition>
+
+    <AccountPanel
+      :account="account"
+      :readings="accountReadings"
+      :is-loading="!isHydrated || isAccountLoading"
+      :is-saving="isAccountSaving"
+      :can-restore="canRestoreArchive"
+      :message="accountMessage"
+      :error="accountError"
+      class="max-w-2xl"
+      @save="handleAccountSave"
+      @login-request="handleAccountLoginRequest"
+      @login-verify="handleAccountLoginVerify"
+      @logout="handleAccountLogout"
+    />
   </div>
 </template>

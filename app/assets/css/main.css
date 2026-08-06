@@ -6,7 +6,7 @@
   --color-mystic-700: #1a1a42;
   --color-mystic-600: #252556;
   --color-mystic-500: #35357a;
-  --color-mystic-400: #5555aa;
+  --color-mystic-400: #6f6fba;
   --color-mystic-300: #8888cc;
   --color-mystic-200: #bbbbdd;
   --color-mystic-100: #ddddee;
@@ -16,7 +16,7 @@
   --color-gold-300: #ebd48a;
 
   --font-family-display: 'Cinzel', serif;
-  --font-family-body: 'Inter', sans-serif;
+  --font-family-body: 'DM Sans', sans-serif;
 }
 
 html,
@@ -29,6 +29,11 @@ body {
   background-color: var(--color-mystic-900);
   color: var(--color-mystic-100);
   min-width: 0;
+}
+
+::selection {
+  background: rgba(212, 168, 83, 0.35);
+  color: var(--color-mystic-100);
 }
 
 .font-display {

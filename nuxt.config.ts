@@ -8,7 +8,7 @@ function normalizeSiteUrl(value: string) {
 }
 
 export default defineNuxtConfig({
-  modules: ['@nuxt/ui', '@nuxt/eslint'],
+  modules: ['@nuxt/ui'],
 
   css: ['~/assets/css/main.css'],
 
@@ -16,11 +16,14 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [],
+    ...(process.env.HISTOIRE || process.env.TAROT_AGENT_TEST_MODE
+      ? { server: { hmr: false } }
+      : {}),
   },
 
   runtimeConfig: {
     databaseUrl: '',
-    anthropicApiKey: '',
+    aiGatewayApiKey: '',
     resendApiKey: '',
     resendFromEmail: '',
     redisRestUrl: '',

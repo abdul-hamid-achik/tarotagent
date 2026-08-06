@@ -4,7 +4,7 @@ import { z } from 'zod'
 
 const rawRuntimeConfigSchema = z.object({
   databaseUrl: z.string(),
-  anthropicApiKey: z.string(),
+  aiGatewayApiKey: z.string(),
   resendApiKey: z.string(),
   resendFromEmail: z.string(),
   redisRestUrl: z.string(),
@@ -60,7 +60,7 @@ function normalizeSiteUrl(value: string): string {
 
 function resolveRuntimeConfig(config: RawRuntimeConfig): AppRuntimeConfig {
   const databaseUrl = firstNonEmpty(process.env.DATABASE_URL, config.databaseUrl)
-  const anthropicApiKey = firstNonEmpty(process.env.ANTHROPIC_API_KEY, config.anthropicApiKey)
+  const aiGatewayApiKey = firstNonEmpty(process.env.AI_GATEWAY_API_KEY, config.aiGatewayApiKey)
   const resendApiKey = firstNonEmpty(process.env.RESEND_API_KEY, config.resendApiKey)
   const resendFromEmail = firstNonEmpty(process.env.RESEND_FROM_EMAIL, config.resendFromEmail)
   const kvUrlRedisConfig = redisRestConfigFromKvUrl(process.env.KV_URL)
@@ -80,7 +80,7 @@ function resolveRuntimeConfig(config: RawRuntimeConfig): AppRuntimeConfig {
   return {
     ...config,
     databaseUrl,
-    anthropicApiKey,
+    aiGatewayApiKey,
     resendApiKey,
     resendFromEmail,
     redisRestUrl,
@@ -109,19 +109,19 @@ export function isTestMode(): boolean {
   return process.env.TAROT_AGENT_TEST_MODE === '1' || process.env.NODE_ENV === 'test'
 }
 
-export function requireAnthropicApiKey(event?: H3Event): string {
-  const apiKey = getValidatedRuntimeConfig(event).anthropicApiKey.trim()
+export function requireAiGatewayApiKey(event?: H3Event): string {
+  const apiKey = getValidatedRuntimeConfig(event).aiGatewayApiKey.trim()
   if (apiKey) {
     return apiKey
   }
 
   if (isTestMode()) {
-    return 'test-anthropic-key'
+    return 'test-ai-gateway-key'
   }
 
   throw createError({
     statusCode: 500,
-    statusMessage: 'Anthropic API key is not configured.',
+    statusMessage: 'AI Gateway API key is not configured.',
   })
 }
 

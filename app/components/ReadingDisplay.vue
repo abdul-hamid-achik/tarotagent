@@ -17,6 +17,7 @@ withDefaults(
   <div
     v-if="text || isStreaming || error"
     class="relative rounded-xl border border-mystic-600/30 bg-mystic-800/60 backdrop-blur-sm p-5 sm:p-8 reading-container"
+    :aria-busy="isStreaming"
   >
     <div
       class="absolute inset-0 rounded-xl opacity-5 pointer-events-none bg-gradient-to-br from-gold-500/20 via-transparent to-mystic-500/20"

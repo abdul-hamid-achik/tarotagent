@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import type { ReadingCard, SpreadType } from '~~/shared/tarot'
-import { getSpreadRevealTimings, spreadDefinitions } from '~~/shared/tarot'
+import { computed } from 'vue'
+import type { ReadingCard, SpreadType } from '../../shared/tarot'
+import { getSpreadRevealTimings, spreadDefinitions } from '../../shared/tarot'
+import TarotCard from './TarotCard.vue'
 
 const props = withDefaults(
   defineProps<{

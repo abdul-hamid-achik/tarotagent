@@ -1,0 +1,21 @@
+version: 1
+project: tarotagent
+
+environments:
+  local:
+    baseUrl: http://127.0.0.1:4173
+    viewport:
+      width: 1440
+      height: 1000
+
+webServer:
+  command: >-
+    bun run dev --host 127.0.0.1 --port 4173
+  env:
+    SITE_URL: http://127.0.0.1:4173
+    PORT: '4173'
+    NITRO_PORT: '4173'
+    TAROT_AGENT_TEST_MODE: '1'
+  url: http://127.0.0.1:4173
+  readyTimeoutMs: 120000
+  reuseExisting: true
