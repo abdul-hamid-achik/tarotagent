@@ -1,0 +1,40 @@
+version: 1
+name: invalid_saved_reading
+intent: A missing public reading shows a useful not-found state.
+coldStart: guest
+
+metadata:
+  tags:
+    - regression
+    - negative
+    - routing
+
+outcomes:
+  - id: missing_reading_is_not_found
+    description: An invalid public reading reference returns a clear not-found state.
+    verify:
+      text:
+        contains: Reading not found.
+
+  - id: missing_reading_request_is_404
+    description: The missing reading API returns a not-found response.
+    verify:
+      network:
+        method: GET
+        urlContains: /api/readings/does-not-exist
+        status:
+          equals: 404
+
+steps:
+  - open:
+      path: /r/does-not-exist
+      waitUntil: networkidle
+  - wait:
+      text: Reading not found.
+      timeoutMs: 10000
+  - request:
+      method: GET
+      url: /api/readings/does-not-exist
+      expectStatus: 404
+      assign: missingReading
+contractHash: 'sha256:a709cddadb0c4af80776eeecd37baeeb7dedaf6383b874d3492867a171bb3201'

@@ -1,0 +1,193 @@
+version: 1
+name: spread_variants_walkthrough
+intent: A visitor can complete a reading through every available tarot spread layout.
+coldStart: guest
+
+metadata:
+  tags:
+    - regression
+    - tarot
+    - spreads
+
+outcomes:
+  - id: all_spread_requests_succeeded
+    description: Every spread walkthrough submits a successful reading request.
+    verify:
+      network:
+        method: POST
+        urlContains: /api/reading
+        status:
+          equals: 200
+
+  - id: final_spread_completed
+    description: The final Celtic Cross walkthrough completes visibly.
+    verify:
+      text:
+        contains: Celtic Cross
+
+  - id: browser_console_is_clean
+    description: The spread walkthrough produces no browser console errors.
+    verify:
+      console:
+        errorsMax: 0
+
+  - id: requests_do_not_fail
+    description: The spread walkthrough has no failed requests.
+    verify:
+      noFailedRequests:
+        urlContains: /
+
+steps:
+  - open:
+      path: /
+      waitUntil: networkidle
+  - fill:
+      by: label
+      name: Your question
+      value: Which energy should guide my next step?
+
+  - click:
+      by: role
+      role: button
+      name: Single Card
+  - click:
+      by: role
+      role: button
+      name: Draw cards
+  - wait:
+      text: Single Card
+      timeoutMs: 15000
+  - wait:
+      text: Share
+      timeoutMs: 15000
+  - click:
+      by: role
+      role: button
+      name: New Reading
+  - wait:
+      text: Consult the Cards
+      timeoutMs: 10000
+  - fill:
+      by: label
+      name: Your question
+      value: Which energy should guide my next step?
+
+  - click:
+      by: role
+      role: button
+      name: Yes or No
+  - click:
+      by: role
+      role: button
+      name: Draw cards
+  - wait:
+      text: Yes or No
+      timeoutMs: 15000
+  - wait:
+      text: Share
+      timeoutMs: 15000
+  - click:
+      by: role
+      role: button
+      name: New Reading
+  - wait:
+      text: Consult the Cards
+      timeoutMs: 10000
+  - fill:
+      by: label
+      name: Your question
+      value: Which energy should guide my next step?
+
+  - click:
+      by: role
+      role: button
+      name: Three Card
+  - click:
+      by: role
+      role: button
+      name: Draw cards
+  - wait:
+      text: Three Card
+      timeoutMs: 15000
+  - wait:
+      text: Share
+      timeoutMs: 15000
+  - click:
+      by: role
+      role: button
+      name: New Reading
+  - wait:
+      text: Consult the Cards
+      timeoutMs: 10000
+  - fill:
+      by: label
+      name: Your question
+      value: Which energy should guide my next step?
+
+  - click:
+      by: role
+      role: button
+      name: Love
+  - click:
+      by: role
+      role: button
+      name: Draw cards
+  - wait:
+      text: Love
+      timeoutMs: 15000
+  - wait:
+      text: Share
+      timeoutMs: 15000
+  - click:
+      by: role
+      role: button
+      name: New Reading
+  - wait:
+      text: Consult the Cards
+      timeoutMs: 10000
+  - fill:
+      by: label
+      name: Your question
+      value: Which energy should guide my next step?
+
+  - click:
+      by: role
+      role: button
+      name: Career Path
+  - click:
+      by: role
+      role: button
+      name: Draw cards
+  - wait:
+      text: Career Path
+      timeoutMs: 15000
+  - wait:
+      text: Share
+      timeoutMs: 15000
+  - click:
+      by: role
+      role: button
+      name: New Reading
+  - wait:
+      text: Consult the Cards
+      timeoutMs: 10000
+  - fill:
+      by: label
+      name: Your question
+      value: Which energy should guide my next step?
+
+  - click:
+      by: role
+      role: button
+      name: Celtic Cross
+  - click:
+      by: role
+      role: button
+      name: Draw cards
+  - wait:
+      text: Celtic Cross
+      timeoutMs: 15000
+  - wait:
+      text: Share
+      timeoutMs: 15000
+contractHash: 'sha256:36a5ccd5dab22ace3043b67540a6445631867e973ecfdacc03d36eac62f879dc'

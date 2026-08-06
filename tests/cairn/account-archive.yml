@@ -1,0 +1,157 @@
+version: 1
+name: account_archive_lifecycle
+intent: A visitor can create, browse, sign out of, and restore a saved reading archive.
+coldStart: guest
+
+vars:
+  archiveEmail: cairntrace-${run.token}@example.com
+
+metadata:
+  tags:
+    - regression
+    - account
+    - persistence
+
+outcomes:
+  - id: archive_contains_reading
+    description: The completed reading appears in the account archive.
+    verify:
+      text:
+        contains: Recent readings
+
+  - id: login_code_request_succeeded
+    description: The archive restore request succeeds.
+    verify:
+      network:
+        method: POST
+        urlContains: /api/account/login/request
+        status:
+          equals: 200
+
+  - id: archive_restored
+    description: The visitor can restore the archive with the emailed one-time code.
+    verify:
+      text:
+        contains: Archive restored.
+
+  - id: browser_console_is_clean
+    description: The account lifecycle produces no browser console errors.
+    verify:
+      console:
+        errorsMax: 0
+
+  - id: requests_do_not_fail
+    description: The account lifecycle has no failed requests.
+    verify:
+      noFailedRequests:
+        urlContains: /
+
+steps:
+  - open:
+      path: /
+      waitUntil: networkidle
+  - wait:
+      text: Save your readings
+      timeoutMs: 10000
+  - click:
+      by: selector
+      selector: 'button[aria-controls="guest-account-panel"]'
+  - wait:
+      text: Saved Readings
+      timeoutMs: 10000
+  - click:
+      by: role
+      role: button
+      name: Maybe later
+  - wait:
+      text: Save your readings
+      timeoutMs: 10000
+  - click:
+      by: selector
+      selector: 'button[aria-controls="guest-account-panel"]'
+  - fill:
+      by: label
+      name: Your question
+      value: What should I preserve while I move forward?
+  - click:
+      by: role
+      role: button
+      name: Three Card
+  - click:
+      by: role
+      role: button
+      name: Draw cards
+  - wait:
+      text: Share
+      timeoutMs: 15000
+  - fill:
+      by: selector
+      selector: '#archive-email'
+      value: '${vars.archiveEmail}'
+  - fill:
+      by: label
+      name: Name
+      value: Cairn Seer
+  - click:
+      by: selector
+      selector: '#guest-account-panel form button[type="submit"]'
+  - wait:
+      text: Account saved.
+      timeoutMs: 10000
+  - wait:
+      text: Recent readings
+      timeoutMs: 10000
+  - click:
+      by: selector
+      selector: 'a[href^="/r/"]'
+  - wait:
+      text: Saved Reading
+      timeoutMs: 10000
+  - open:
+      path: /
+      waitUntil: networkidle
+  - wait:
+      text: Cairn Seer
+      timeoutMs: 10000
+  - click:
+      by: role
+      role: button
+      name: Sign out
+  - wait:
+      text: Save your readings
+      timeoutMs: 10000
+  - click:
+      by: selector
+      selector: 'button[aria-controls="guest-account-panel"]'
+  - click:
+      by: selector
+      selector: '#guest-account-panel [role="group"] button:nth-child(2)'
+  - fill:
+      by: label
+      name: Archive email
+      value: '${vars.archiveEmail}'
+  - click:
+      by: role
+      role: button
+      name: Send code
+  - wait:
+      text: If that archive exists, a login code has been sent.
+      timeoutMs: 10000
+  - request:
+      method: POST
+      url: /api/account/login/request
+      body:
+        email: '${vars.archiveEmail}'
+      expectStatus: 200
+      assign: loginRequest
+  - fill:
+      by: label
+      name: Verification code
+      value: '${requests.loginRequest.body.testCode}'
+  - click:
+      by: selector
+      selector: '#guest-account-panel form button[type="submit"]'
+  - wait:
+      text: Archive restored.
+      timeoutMs: 10000
+contractHash: 'sha256:81d90813e252b381714bfd0424bae5b2190aea0d69800de410a555f6067d7f16'

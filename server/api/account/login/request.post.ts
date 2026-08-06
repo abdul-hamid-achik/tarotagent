@@ -2,6 +2,7 @@ import { createError, readBody } from 'h3'
 import { accountLoginRequestSchema } from '../../../../shared/account'
 import { sendAccountLoginCodeEmail } from '../../../services/email'
 import { createAccountLoginCode } from '../../../services/persistence'
+import { isTestMode } from '../../../utils/env'
 import { assertRateLimit } from '../../../utils/rate-limit'
 import { getOrCreateAnonymousSessionId } from '../../../utils/session'
 
@@ -32,5 +33,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return { ok: true }
+  // The local Cairntrace environment needs the one-time code to exercise the
+  // successful restore path. This field is never returned outside test mode.
+  return isTestMode() && loginCode ? { ok: true, testCode: loginCode.code } : { ok: true }
 })
