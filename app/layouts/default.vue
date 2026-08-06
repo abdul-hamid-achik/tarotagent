@@ -10,7 +10,7 @@ const currentYear = new Date().getFullYear()
       <div
         class="absolute inset-0 bg-gradient-to-b from-mystic-800/50 to-transparent pointer-events-none"
       ></div>
-      <div class="mx-auto max-w-5xl flex items-center justify-center relative">
+      <div class="relative mx-auto flex max-w-6xl items-center justify-center">
         <NuxtLink
           to="/"
           class="rounded-sm focus:outline-none focus:ring-2 focus:ring-gold-500/60 focus:ring-offset-4 focus:ring-offset-mystic-900"
@@ -27,7 +27,7 @@ const currentYear = new Date().getFullYear()
     </header>
 
     <main class="flex-1 px-4 py-6 sm:py-8">
-      <div class="mx-auto max-w-5xl">
+      <div class="mx-auto w-full max-w-6xl">
         <slot />
       </div>
     </main>
@@ -36,7 +36,7 @@ const currentYear = new Date().getFullYear()
       <div
         class="absolute inset-0 bg-gradient-to-t from-mystic-800/30 to-transparent pointer-events-none"
       ></div>
-      <div class="mx-auto max-w-5xl text-center relative">
+      <div class="relative mx-auto max-w-6xl text-center">
         <p class="text-sm text-mystic-400">
           &copy; {{ currentYear }} Tarot Agent &middot; For entertainment purposes only
         </p>

@@ -18,7 +18,7 @@ withDefaults(
 
 <template>
   <section
-    class="w-full max-w-2xl rounded-xl border border-mystic-600/30 bg-mystic-800/40 p-4 sm:p-6"
+    class="w-full max-w-3xl rounded-xl border border-mystic-600/30 bg-mystic-800/40 p-4 sm:p-6"
     aria-labelledby="reading-meta-heading"
   >
     <div class="flex flex-col gap-3">

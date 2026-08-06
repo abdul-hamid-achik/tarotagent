@@ -132,7 +132,7 @@ async function handleEmailRequest(email: string) {
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-6 sm:gap-8">
+  <div class="flex w-full max-w-5xl flex-col items-center gap-6 sm:gap-8">
     <ReadingMetaCard
       badge="Saved Reading"
       :spread-name="spreadName"
@@ -150,7 +150,7 @@ async function handleEmailRequest(email: string) {
       :instant-reveal="!isStreaming"
     />
 
-    <div class="w-full max-w-2xl flex flex-col gap-4">
+    <div class="flex w-full max-w-3xl flex-col gap-4">
       <ReadingDisplay :text="readingText" :is-streaming="isStreaming" heading="Saved Reading" />
 
       <ReadingActions

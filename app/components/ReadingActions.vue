@@ -57,12 +57,13 @@ function handleNewReading() {
     class="rounded-xl border border-mystic-600/20 bg-mystic-900/40 p-4 sm:p-5 flex flex-col gap-4"
     aria-label="Reading actions"
   >
-    <div class="flex flex-wrap gap-3">
+    <div class="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:gap-3">
       <UButton
         v-if="shareUrl"
         variant="solid"
         color="primary"
         :disabled="isReplaying"
+        class="w-full justify-center sm:w-auto"
         @click="emit('share')"
       >
         Share
@@ -72,11 +73,18 @@ function handleNewReading() {
         color="primary"
         :loading="isReplaying"
         :disabled="isReplaying"
+        class="w-full justify-center sm:w-auto"
         @click="emit('replay')"
       >
         {{ isReplaying ? 'Replaying...' : 'Replay' }}
       </UButton>
-      <UButton v-if="newReadingHref" variant="outline" color="neutral" :to="newReadingHref">
+      <UButton
+        v-if="newReadingHref"
+        variant="outline"
+        color="neutral"
+        :to="newReadingHref"
+        class="w-full justify-center sm:w-auto"
+      >
         New Reading
       </UButton>
       <UButton
@@ -84,6 +92,7 @@ function handleNewReading() {
         variant="outline"
         color="neutral"
         :disabled="isReplaying"
+        class="w-full justify-center sm:w-auto"
         @click="handleNewReading"
       >
         New Reading

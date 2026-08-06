@@ -223,22 +223,37 @@ function handleAccountLogout() {
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-6 sm:gap-10">
-    <section class="text-center pt-6 pb-2 sm:pt-8 sm:pb-4">
-      <div class="animate-float inline-block mb-6">
+  <div
+    class="flex w-full flex-col items-center"
+    :class="hasReading ? 'gap-4 sm:gap-6' : 'gap-6 sm:gap-10'"
+  >
+    <section
+      class="text-center"
+      :class="hasReading ? 'pb-0 pt-2 sm:pt-4' : 'pb-2 pt-6 sm:pb-4 sm:pt-8'"
+    >
+      <div class="animate-float inline-block" :class="hasReading ? 'mb-3' : 'mb-6'">
         <img
           src="/cards/back.png"
           alt=""
-          class="w-20 h-[7.03125rem] sm:w-24 sm:h-[8.4375rem] rounded-lg border border-gold-500/30 shadow-lg shadow-gold-500/10 object-cover"
+          class="rounded-lg border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
+          :class="
+            hasReading
+              ? 'h-[5.625rem] w-16 sm:h-[7.03125rem] sm:w-20'
+              : 'h-[7.03125rem] w-20 sm:h-[8.4375rem] sm:w-24'
+          "
           aria-hidden="true"
         />
       </div>
       <h2
-        class="font-display text-3xl sm:text-4xl font-semibold text-mystic-100 mb-3 tracking-wide"
+        class="font-display font-semibold tracking-wide text-mystic-100"
+        :class="hasReading ? 'mb-2 text-2xl sm:text-3xl' : 'mb-3 text-3xl sm:text-4xl'"
       >
         Consult the Cards
       </h2>
-      <p class="text-mystic-300 max-w-md mx-auto text-sm sm:text-base leading-relaxed">
+      <p
+        v-if="!hasReading"
+        class="mx-auto max-w-md text-sm leading-relaxed text-mystic-300 sm:text-base"
+      >
         An AI-powered tarot reading experience. Focus your mind, ask your question, and let the
         cards reveal their wisdom.
       </p>
@@ -399,7 +414,11 @@ function handleAccountLogout() {
         </p>
       </section>
 
-      <section v-else key="reading" class="w-full flex flex-col items-center gap-6 sm:gap-8">
+      <section
+        v-else
+        key="reading"
+        class="flex w-full max-w-5xl flex-col items-center gap-6 sm:gap-8"
+      >
         <ReadingMetaCard
           :spread-name="spreadName"
           :question="question"
@@ -430,7 +449,7 @@ function handleAccountLogout() {
           :reveal-timings="revealTimingsMs"
         />
 
-        <div class="w-full max-w-2xl flex flex-col gap-4">
+        <div class="flex w-full max-w-3xl flex-col gap-4">
           <ReadingDisplay :text="readingText" :is-streaming="isStreaming" :error="error" />
 
           <ReadingActions
@@ -465,7 +484,7 @@ function handleAccountLogout() {
       :can-restore="canRestoreArchive"
       :message="accountMessage"
       :error="accountError"
-      class="max-w-2xl"
+      class="max-w-3xl"
       @save="handleAccountSave"
       @login-request="handleAccountLoginRequest"
       @login-verify="handleAccountLoginVerify"

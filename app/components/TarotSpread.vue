@@ -29,6 +29,12 @@ const isSingleLayout = (type: SpreadType) => type === 'single' || type === 'yes-
 const isRowLayout = (type: SpreadType) =>
   type === 'three-card' || type === 'love' || type === 'career'
 
+const rowLayoutClasses = computed(() =>
+  props.spreadType === 'three-card'
+    ? 'grid-cols-3 gap-x-2 sm:gap-x-6'
+    : 'grid-cols-2 gap-x-2 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-5 lg:gap-x-4',
+)
+
 function delayFor(index: number) {
   return resolvedRevealTimings.value[index] ?? 0
 }
@@ -38,11 +44,11 @@ function positionLabel(index: number) {
 }
 
 const celticPositionLabelClasses =
-  'text-[10px] sm:text-xs text-mystic-400 font-display uppercase tracking-widest text-center max-w-[9rem] leading-tight'
+  'flex min-h-8 w-full max-w-[9rem] items-end justify-center text-center text-[10px] leading-tight text-mystic-400 font-display uppercase tracking-widest sm:min-h-10 sm:text-xs'
 </script>
 
 <template>
-  <div v-if="isSingleLayout(spreadType)" class="flex justify-center">
+  <div v-if="isSingleLayout(spreadType)" class="flex w-full max-w-xl justify-center">
     <div
       v-for="card in cards.slice(0, 1)"
       :key="`${card.id}-${card.position}`"
@@ -62,15 +68,16 @@ const celticPositionLabelClasses =
 
   <div
     v-else-if="isRowLayout(spreadType)"
-    class="flex justify-center items-start gap-3 sm:gap-6 flex-wrap"
+    class="grid w-full max-w-5xl place-items-start gap-y-8 sm:gap-y-10"
+    :class="rowLayoutClasses"
   >
     <div
       v-for="(card, index) in cards"
       :key="`${card.id}-${card.position}`"
-      class="flex flex-col items-center gap-1"
+      class="flex min-w-0 flex-col items-center gap-1"
     >
       <p
-        class="text-xs text-mystic-400 font-display uppercase tracking-widest mb-2 text-center max-w-[8rem]"
+        class="mb-2 flex min-h-8 w-full max-w-[9rem] items-end justify-center text-center text-xs leading-tight text-mystic-400 font-display uppercase tracking-widest sm:min-h-10"
       >
         {{ card.position }}
       </p>
@@ -79,14 +86,20 @@ const celticPositionLabelClasses =
         :revealed="revealed"
         :delay="delayFor(index)"
         :instant-reveal="instantReveal"
+        size="row"
       />
     </div>
   </div>
 
-  <div v-else class="flex flex-col items-center gap-6 sm:gap-8 w-full">
-    <div class="w-full overflow-x-auto pb-2">
+  <div v-else class="flex w-full max-w-5xl flex-col items-center gap-6 sm:gap-8">
+    <div
+      class="w-full overflow-x-auto pb-2 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:ring-offset-4 focus:ring-offset-mystic-900"
+      tabindex="0"
+      role="group"
+      aria-label="Celtic Cross spread. Scroll horizontally on smaller screens."
+    >
       <div
-        class="mx-auto grid min-w-[34rem] max-w-[44rem] grid-cols-[8rem_12rem_8rem] items-center justify-center gap-x-8 gap-y-8 sm:min-w-0 sm:grid-cols-[8rem_13rem_8rem] sm:gap-x-12 sm:gap-y-10"
+        class="mx-auto grid min-w-[30rem] max-w-[44rem] grid-cols-[8rem_12rem_8rem] items-center justify-center gap-x-6 gap-y-8 sm:min-w-0 sm:grid-cols-[8rem_13rem_8rem] sm:gap-x-12 sm:gap-y-10"
       >
         <div class="col-start-2 row-start-1 flex flex-col items-center gap-1">
           <p :class="celticPositionLabelClasses">
@@ -180,11 +193,11 @@ const celticPositionLabelClasses =
       </div>
     </div>
 
-    <div class="flex gap-3 sm:gap-6 flex-wrap justify-center">
+    <div class="grid w-full max-w-4xl grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-4 sm:gap-x-6">
       <div
         v-for="(card, index) in celticCrossStaffCards"
         :key="`${card.id}-${card.position}`"
-        class="flex flex-col items-center gap-1"
+        class="flex min-w-0 flex-col items-center gap-1"
       >
         <p :class="celticPositionLabelClasses">
           {{ card.position }}

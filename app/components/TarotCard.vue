@@ -8,7 +8,7 @@ const props = withDefaults(
     revealed?: boolean
     delay?: number
     instantReveal?: boolean
-    size?: 'default' | 'compact'
+    size?: 'default' | 'compact' | 'row'
     showLabel?: boolean
   }>(),
   {
@@ -20,9 +20,11 @@ const props = withDefaults(
   },
 )
 
-const cardSizeClasses = computed(() =>
-  props.size === 'compact' ? 'w-24 aspect-[32/45] sm:w-32' : 'w-32 aspect-[32/45] sm:w-40',
-)
+const cardSizeClasses = computed(() => {
+  if (props.size === 'compact') return 'w-24 aspect-[32/45] sm:w-32'
+  if (props.size === 'row') return 'w-24 aspect-[32/45] sm:w-32 lg:w-40'
+  return 'w-32 aspect-[32/45] sm:w-40'
+})
 
 const labelSizeClasses = computed(() =>
   props.size === 'compact' ? 'text-xs sm:text-sm' : 'text-sm',
