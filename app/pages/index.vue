@@ -111,6 +111,15 @@ function usePromptSuggestion(prompt: string) {
   question.value = prompt
 }
 
+function handleQuestionKeydown(event: KeyboardEvent) {
+  if (event.key !== 'Enter' || (!event.metaKey && !event.ctrlKey) || !canDraw.value) {
+    return
+  }
+
+  event.preventDefault()
+  void handleStartReading()
+}
+
 async function handleStartReading() {
   shareMessage.set(null)
   emailMessage.set(null)
@@ -244,7 +253,7 @@ function handleAccountLogout() {
       leave-to-class="opacity-0 -translate-y-4"
       mode="out-in"
     >
-      <section v-if="!hasReading" key="input" class="w-full max-w-lg flex flex-col gap-6">
+      <section v-if="!hasReading" key="input" class="w-full max-w-2xl flex flex-col gap-6">
         <div class="grid gap-2">
           <label for="reading-question" class="text-left text-sm font-medium text-mystic-200">
             Your question
@@ -263,6 +272,7 @@ function handleAccountLogout() {
               class="w-full"
               :disabled="!isHydrated || isLoading"
               aria-describedby="reading-question-hint"
+              @keydown="handleQuestionKeydown"
             />
           </div>
           <div
@@ -290,14 +300,24 @@ function handleAccountLogout() {
           </div>
         </div>
 
-        <div class="rounded-xl border border-mystic-600/30 bg-mystic-800/40 p-4 sm:p-5">
+        <div class="rounded-xl border border-mystic-600/30 bg-mystic-800/40 p-4 sm:p-6">
           <div class="flex flex-col items-center gap-4">
-            <div class="flex flex-col items-center gap-2">
-              <span class="text-xs text-mystic-400 font-display uppercase tracking-widest">
-                Spread
-              </span>
+            <div class="w-full">
+              <div class="mb-3 flex items-end justify-between gap-3">
+                <div>
+                  <p class="font-display text-sm uppercase tracking-widest text-gold-300">
+                    Choose a spread
+                  </p>
+                  <p class="mt-1 text-xs text-mystic-400">Match the layout to your question.</p>
+                </div>
+                <span
+                  class="shrink-0 rounded-full border border-mystic-700/60 px-2.5 py-1 text-xs text-mystic-400"
+                >
+                  {{ spreadOptions.length }} options
+                </span>
+              </div>
               <div
-                class="flex flex-wrap justify-center gap-2 w-full"
+                class="grid w-full grid-cols-2 gap-2 sm:grid-cols-3"
                 role="group"
                 aria-label="Select spread type"
                 aria-describedby="spread-description"
@@ -305,11 +325,12 @@ function handleAccountLogout() {
                 <button
                   v-for="option in spreadOptions"
                   :key="option.value"
-                  class="cursor-pointer min-h-11 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-gold-500/50"
+                  type="button"
+                  class="min-h-11 w-full cursor-pointer rounded-lg border px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-500/50 active:scale-[0.98]"
                   :class="
                     spreadType === option.value
-                      ? 'bg-gold-500 text-mystic-900 shadow-lg shadow-gold-500/25 scale-105'
-                      : 'bg-mystic-700/50 text-mystic-300 hover:bg-mystic-600/50 hover:text-mystic-100 active:scale-95'
+                      ? 'border-gold-300/80 bg-gold-500 text-mystic-900 shadow-lg shadow-gold-500/20 ring-2 ring-gold-300/25'
+                      : 'border-mystic-600/60 bg-mystic-700/40 text-mystic-300 hover:border-gold-500/40 hover:bg-mystic-600/50 hover:text-mystic-100'
                   "
                   :disabled="!isHydrated || isLoading"
                   :aria-pressed="spreadType === option.value"
@@ -320,30 +341,56 @@ function handleAccountLogout() {
               </div>
             </div>
 
-            <div class="text-center max-w-sm">
-              <p class="font-display text-gold-300 text-sm">
+            <div
+              class="w-full max-w-sm rounded-lg border border-gold-500/20 bg-gold-500/5 px-4 py-3 text-center"
+              aria-live="polite"
+            >
+              <p class="font-display text-sm text-gold-300">
                 {{ spreadName }}
               </p>
-              <p id="spread-description" class="text-sm text-mystic-300 mt-1">
+              <p id="spread-description" class="mt-1 text-sm text-mystic-300">
                 {{ spreadDescription }}
               </p>
             </div>
 
-            <UButton
-              size="lg"
-              :loading="isLoading"
-              :disabled="!canDraw"
-              class="mt-2 w-full px-8 sm:w-auto"
-              @click="handleStartReading"
-            >
-              <template #leading>
-                <span v-if="!isLoading" aria-hidden="true">&#10022;</span>
-              </template>
-              Draw Cards
-            </UButton>
-            <p class="text-center text-xs text-mystic-400">
-              No account required to begin. Save a reading whenever you are ready.
-            </p>
+            <div class="w-full border-t border-mystic-700/50 pt-4 text-center">
+              <UButton
+                type="button"
+                size="lg"
+                color="primary"
+                variant="solid"
+                data-testid="draw-cards"
+                :loading="isLoading"
+                :disabled="!canDraw"
+                aria-describedby="draw-hint"
+                class="group w-full justify-center px-6 py-3 text-base font-semibold shadow-lg shadow-gold-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-gold-500/25 active:translate-y-0 active:scale-[0.98] disabled:!border-mystic-600/60 disabled:!bg-mystic-700/60 disabled:!text-mystic-400 disabled:!opacity-100 disabled:translate-y-0 disabled:shadow-none sm:min-w-56 sm:w-auto"
+                @click="handleStartReading"
+              >
+                <template #leading>
+                  <span
+                    v-if="!isLoading"
+                    class="transition-transform duration-200 group-hover:rotate-12"
+                    aria-hidden="true"
+                    >&#10022;</span
+                  >
+                </template>
+                {{ isLoading ? 'Reading the cards...' : 'Draw cards' }}
+                <template v-if="!isLoading" #trailing>
+                  <span
+                    class="hidden rounded border border-black/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider opacity-70 sm:inline"
+                    aria-hidden="true"
+                  >
+                    &#8984; / Ctrl &#8629;
+                  </span>
+                </template>
+              </UButton>
+              <p id="draw-hint" class="mt-2 text-center text-xs text-mystic-400">
+                <span v-if="!question.trim()">Write a question above to begin.</span>
+                <span v-else
+                  >No account required. You can save the reading whenever you are ready.</span
+                >
+              </p>
+            </div>
           </div>
         </div>
 

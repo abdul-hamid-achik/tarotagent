@@ -61,7 +61,7 @@ function handleNewReading() {
       <UButton
         v-if="shareUrl"
         variant="solid"
-        color="neutral"
+        color="primary"
         :disabled="isReplaying"
         @click="emit('share')"
       >
@@ -69,6 +69,7 @@ function handleNewReading() {
       </UButton>
       <UButton
         variant="outline"
+        color="primary"
         :loading="isReplaying"
         :disabled="isReplaying"
         @click="emit('replay')"
