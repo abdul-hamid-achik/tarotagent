@@ -56,6 +56,7 @@ const {
 } = useAccount()
 
 const isHydrated = ref(false)
+const accountModalOpen = ref(false)
 const canRestoreArchive = computed(() => Boolean(clientConfig.value?.emailEnabled))
 const hasReading = computed(() => cards.value.length > 0 || isLoading.value)
 const canDraw = computed(
@@ -220,6 +221,14 @@ function handleAccountLoginVerify(input: { email: string; code: string }) {
 function handleAccountLogout() {
   void logout()
 }
+
+function openAccountModal() {
+  accountModalOpen.value = true
+}
+
+function closeAccountModal() {
+  accountModalOpen.value = false
+}
 </script>
 
 <template>
@@ -258,6 +267,62 @@ function handleAccountLogout() {
         cards reveal their wisdom.
       </p>
     </section>
+
+    <div class="flex w-full max-w-2xl justify-end">
+      <button
+        type="button"
+        class="group inline-flex min-h-11 max-w-full items-center gap-2.5 rounded-full border border-mystic-700/70 bg-mystic-900/55 px-3 py-2 text-left shadow-lg shadow-mystic-950/10 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold-500/45 hover:bg-mystic-800/70 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:ring-offset-2 focus:ring-offset-mystic-900 active:translate-y-0"
+        aria-controls="account-archive-panel"
+        :aria-expanded="accountModalOpen"
+        aria-label="Open reading archive"
+        @click="openAccountModal"
+      >
+        <span
+          class="flex size-7 shrink-0 items-center justify-center rounded-full bg-gold-500/10 text-gold-300 transition-colors group-hover:bg-gold-500/20"
+          aria-hidden="true"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="size-4"
+          >
+            <path d="M4 8.5v10.25A1.25 1.25 0 0 0 5.25 20h13.5A1.25 1.25 0 0 0 20 18.75V8.5" />
+            <path d="M3 8.5h18l-1.5-4h-15L3 8.5Z" />
+            <path d="M9 12.5h6" />
+          </svg>
+        </span>
+        <span class="min-w-0">
+          <span class="block truncate text-xs font-medium text-mystic-100">
+            {{ account ? account.displayName || 'Reading archive' : 'Save your readings' }}
+          </span>
+          <span class="block text-[11px] text-mystic-400">
+            <template v-if="account">
+              {{ accountReadings.length }}
+              {{ accountReadings.length === 1 ? 'saved reading' : 'saved readings' }}
+            </template>
+            <template v-else
+              >Optional <span aria-hidden="true">&middot;</span> restore later</template
+            >
+          </span>
+        </span>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="size-4 shrink-0 text-mystic-500 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-gold-300"
+          aria-hidden="true"
+        >
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </button>
+    </div>
 
     <Transition
       enter-active-class="transition-all duration-500 ease-out"
@@ -476,19 +541,34 @@ function handleAccountLogout() {
       </section>
     </Transition>
 
-    <AccountPanel
-      :account="account"
-      :readings="accountReadings"
-      :is-loading="!isHydrated || isAccountLoading"
-      :is-saving="isAccountSaving"
-      :can-restore="canRestoreArchive"
-      :message="accountMessage"
-      :error="accountError"
-      class="max-w-3xl"
-      @save="handleAccountSave"
-      @login-request="handleAccountLoginRequest"
-      @login-verify="handleAccountLoginVerify"
-      @logout="handleAccountLogout"
-    />
+    <UModal
+      v-model:open="accountModalOpen"
+      title="Your reading archive"
+      description="Optional. Keep completed readings in this browser and restore them by email."
+      scrollable
+      :ui="{
+        content: 'border border-gold-500/25 bg-mystic-900 shadow-2xl shadow-mystic-950/60',
+        header: 'border-b border-mystic-700/50 px-4 py-4 sm:px-6',
+        body: 'p-4 sm:p-6',
+      }"
+    >
+      <template #body>
+        <AccountPanel
+          embedded
+          :account="account"
+          :readings="accountReadings"
+          :is-loading="!isHydrated || isAccountLoading"
+          :is-saving="isAccountSaving"
+          :can-restore="canRestoreArchive"
+          :message="accountMessage"
+          :error="accountError"
+          @save="handleAccountSave"
+          @login-request="handleAccountLoginRequest"
+          @login-verify="handleAccountLoginVerify"
+          @logout="handleAccountLogout"
+          @close="closeAccountModal"
+        />
+      </template>
+    </UModal>
   </div>
 </template>

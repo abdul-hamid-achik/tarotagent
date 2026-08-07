@@ -55,7 +55,7 @@ steps:
       timeoutMs: 10000
   - click:
       by: selector
-      selector: 'button[aria-controls="guest-account-panel"]'
+      selector: 'button[aria-controls="account-archive-panel"]'
   - wait:
       text: Saved Readings
       timeoutMs: 10000
@@ -66,9 +66,6 @@ steps:
   - wait:
       text: Save your readings
       timeoutMs: 10000
-  - click:
-      by: selector
-      selector: 'button[aria-controls="guest-account-panel"]'
   - fill:
       by: label
       name: Your question
@@ -84,6 +81,9 @@ steps:
   - wait:
       text: Share
       timeoutMs: 15000
+  - click:
+      by: selector
+      selector: 'button[aria-controls="account-archive-panel"]'
   - fill:
       by: selector
       selector: '#archive-email'
@@ -114,15 +114,15 @@ steps:
       text: Cairn Seer
       timeoutMs: 10000
   - click:
+      by: selector
+      selector: 'button[aria-controls="account-archive-panel"]'
+  - click:
       by: role
       role: button
       name: Sign out
   - wait:
       text: Save your readings
       timeoutMs: 10000
-  - click:
-      by: selector
-      selector: 'button[aria-controls="guest-account-panel"]'
   - click:
       by: selector
       selector: '#guest-account-panel [role="group"] button:nth-child(2)'

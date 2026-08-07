@@ -15,6 +15,7 @@ const props = withDefaults(
     canRestore?: boolean
     message?: string | null
     error?: string | null
+    embedded?: boolean
   }>(),
   {
     account: null,
@@ -24,6 +25,7 @@ const props = withDefaults(
     canRestore: false,
     message: null,
     error: null,
+    embedded: false,
   },
 )
 
@@ -32,6 +34,7 @@ const emit = defineEmits<{
   loginRequest: [input: AccountLoginRequest]
   loginVerify: [input: AccountLoginVerifyRequest]
   logout: []
+  close: []
 }>()
 
 const mode = ref<'create' | 'restore'>('create')
@@ -40,7 +43,7 @@ const displayName = ref('')
 const loginEmail = ref('')
 const loginCode = ref('')
 const loginCodeRequested = ref(false)
-const guestExpanded = ref(false)
+const guestExpanded = ref(props.embedded)
 
 const emailLooksValid = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()))
 const loginEmailLooksValid = computed(() =>
@@ -81,14 +84,30 @@ function verifyLoginCode() {
     code: loginCode.value.trim(),
   })
 }
+
+function handleDismiss() {
+  if (props.embedded) {
+    emit('close')
+    return
+  }
+
+  guestExpanded.value = false
+}
 </script>
 
 <template>
   <section
-    class="relative w-full overflow-hidden rounded-xl border border-gold-500/25 bg-mystic-900/70 p-4 shadow-2xl shadow-mystic-900/40 sm:p-5"
+    id="account-archive-panel"
+    class="relative w-full"
+    :class="
+      embedded
+        ? 'bg-transparent'
+        : 'overflow-hidden rounded-xl border border-gold-500/25 bg-mystic-900/70 p-4 shadow-2xl shadow-mystic-900/40 sm:p-5'
+    "
     aria-label="Account"
   >
     <div
+      v-if="!embedded"
       class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-300/60 to-transparent"
       aria-hidden="true"
     />
@@ -222,13 +241,7 @@ function verifyLoginCode() {
               </p>
             </div>
           </div>
-          <UButton
-            type="button"
-            variant="ghost"
-            color="neutral"
-            size="sm"
-            @click="guestExpanded = false"
-          >
+          <UButton type="button" variant="ghost" color="neutral" size="sm" @click="handleDismiss">
             Maybe later
           </UButton>
         </div>
