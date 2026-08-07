@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomInt } from 'node:crypto'
-import { and, desc, eq, isNull } from 'drizzle-orm'
+import { and, count, desc, eq, isNotNull, isNull } from 'drizzle-orm'
 import { ensureDatabaseReady, getDatabase } from '../db/client'
 import {
   accountLoginCodes,
@@ -29,6 +29,12 @@ import {
   type Account,
   type AccountReadingSummary,
 } from '../../shared/account'
+import {
+  adminEventSchema,
+  adminOverviewSchema,
+  adminReadingSchema,
+  type AdminOverview,
+} from '../../shared/admin'
 import {
   publicReadingSchema,
   readingMetadataSchema,
@@ -225,6 +231,120 @@ function serializeAccountReadingSummary(record: ReadingRecord): AccountReadingSu
     createdAt: record.createdAt.toISOString(),
     completedAt: record.completedAt?.toISOString() ?? null,
   }
+}
+
+function serializeAdminReading(record: ReadingRecord, eventCounts: Record<string, number>) {
+  return adminReadingSchema.parse({
+    id: record.id,
+    shareSlug: record.shareSlug,
+    shareUrl: buildShareUrl(record.shareSlug),
+    question: record.question,
+    spreadType: record.spreadType,
+    spreadName: record.spreadName,
+    status: record.status,
+    createdAt: record.createdAt.toISOString(),
+    updatedAt: record.updatedAt.toISOString(),
+    completedAt: record.completedAt?.toISOString() ?? null,
+    failedAt: record.failedAt?.toISOString() ?? null,
+    errorMessage: record.errorMessage,
+    eventCounts,
+  })
+}
+
+function serializeAdminEvent(
+  record: ReadingEventRecord,
+  readingLookup: Map<string, ReadingRecord>,
+) {
+  const reading = record.readingId ? readingLookup.get(record.readingId) : undefined
+
+  return adminEventSchema.parse({
+    eventType: record.eventType,
+    readingId: record.readingId,
+    shareSlug: record.shareSlug,
+    question: reading?.question ?? null,
+    spreadName: reading?.spreadName ?? null,
+    createdAt: record.createdAt.toISOString(),
+    payload: record.payload,
+  })
+}
+
+function incrementCount(counts: Record<string, number>, key: string, amount = 1) {
+  counts[key] = (counts[key] ?? 0) + amount
+}
+
+function buildEventCountsByReading(
+  events: ReadingEventRecord[],
+): Map<string, Record<string, number>> {
+  const countsByReading = new Map<string, Record<string, number>>()
+
+  for (const event of events) {
+    if (!event.readingId) {
+      continue
+    }
+
+    const eventCounts = countsByReading.get(event.readingId) ?? {}
+    incrementCount(eventCounts, event.eventType)
+    countsByReading.set(event.readingId, eventCounts)
+  }
+
+  return countsByReading
+}
+
+function buildAdminOverviewFromRecords(
+  readingRecords: ReadingRecord[],
+  eventRecords: ReadingEventRecord[],
+): AdminOverview {
+  const eventCounts: Record<string, number> = {}
+  const spreadCounts = new Map<
+    string,
+    { spreadType: ReadingRecord['spreadType']; spreadName: string; count: number }
+  >()
+
+  for (const event of eventRecords) {
+    incrementCount(eventCounts, event.eventType)
+  }
+
+  for (const reading of readingRecords) {
+    const key = reading.spreadType
+    const spreadCount = spreadCounts.get(key) ?? {
+      spreadType: reading.spreadType,
+      spreadName: reading.spreadName,
+      count: 0,
+    }
+    spreadCount.count += 1
+    spreadCounts.set(key, spreadCount)
+  }
+
+  const countsByReading = buildEventCountsByReading(eventRecords)
+  const readingLookup = new Map(readingRecords.map((record) => [record.id, record]))
+  const completedReadings = readingRecords.filter((record) => record.status === 'completed').length
+  const failedReadings = readingRecords.filter((record) => record.status === 'failed').length
+
+  return adminOverviewSchema.parse({
+    generatedAt: new Date().toISOString(),
+    summary: {
+      totalReadings: readingRecords.length,
+      completedReadings,
+      failedReadings,
+      inProgressReadings: Math.max(0, readingRecords.length - completedReadings - failedReadings),
+      shareCopies: eventCounts.share_copied ?? 0,
+      shareViews: eventCounts.share_page_viewed ?? 0,
+      replays: eventCounts.replay_started ?? 0,
+      emailsSent: eventCounts.email_sent ?? 0,
+    },
+    spreadBreakdown: [...spreadCounts.values()].sort((left, right) => right.count - left.count),
+    eventBreakdown: Object.entries(eventCounts)
+      .map(([eventType, count]) => ({ eventType, count }))
+      .sort((left, right) => right.count - left.count),
+    recentReadings: [...readingRecords]
+      .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+      .slice(0, 50)
+      .map((record) => serializeAdminReading(record, countsByReading.get(record.id) ?? {})),
+    recentEvents: [...eventRecords]
+      .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+      .slice(0, 100)
+      .map((record) => serializeAdminEvent(record, readingLookup)),
+  })
 }
 
 function buildReadingRecord(input: CreateReadingInput): ReadingRecord {
@@ -950,6 +1070,103 @@ export async function listReadingEventsForReading(
   }
 
   return getMemoryPersistence().events.filter((event) => event.readingId === readingId)
+}
+
+export async function getAdminOverview(): Promise<AdminOverview> {
+  const database = getDatabase()
+
+  if (!database) {
+    const memory = getMemoryPersistence()
+    return buildAdminOverviewFromRecords([...memory.readingsById.values()], memory.events)
+  }
+
+  await ensureDatabaseReady()
+
+  const [
+    [totalReadingsRow],
+    [completedReadingsRow],
+    [failedReadingsRow],
+    spreadRows,
+    eventRows,
+    recentReadingRows,
+    eventCountsByReadingRows,
+    recentEventRows,
+  ] = await Promise.all([
+    database.select({ total: count() }).from(readings),
+    database.select({ total: count() }).from(readings).where(eq(readings.status, 'completed')),
+    database.select({ total: count() }).from(readings).where(eq(readings.status, 'failed')),
+    database
+      .select({ spreadType: readings.spreadType, spreadName: readings.spreadName, total: count() })
+      .from(readings)
+      .groupBy(readings.spreadType, readings.spreadName),
+    database
+      .select({ eventType: readingEvents.eventType, total: count() })
+      .from(readingEvents)
+      .groupBy(readingEvents.eventType),
+    database.select().from(readings).orderBy(desc(readings.createdAt)).limit(50),
+    database
+      .select({
+        readingId: readingEvents.readingId,
+        eventType: readingEvents.eventType,
+        total: count(),
+      })
+      .from(readingEvents)
+      .where(isNotNull(readingEvents.readingId))
+      .groupBy(readingEvents.readingId, readingEvents.eventType),
+    database.select().from(readingEvents).orderBy(desc(readingEvents.createdAt)).limit(100),
+  ])
+
+  const recentReadings = recentReadingRows.map((record) => readingSelectSchema.parse(record))
+  const recentEvents = recentEventRows.map((record) => readingEventSelectSchema.parse(record))
+  const eventCountsByReading = new Map<string, Record<string, number>>()
+
+  for (const row of eventCountsByReadingRows) {
+    if (!row.readingId) {
+      continue
+    }
+
+    const counts = eventCountsByReading.get(row.readingId) ?? {}
+    incrementCount(counts, row.eventType, Number(row.total))
+    eventCountsByReading.set(row.readingId, counts)
+  }
+
+  const eventCounts: Record<string, number> = {}
+  for (const row of eventRows) {
+    incrementCount(eventCounts, row.eventType, Number(row.total))
+  }
+
+  const readingLookup = new Map(recentReadings.map((record) => [record.id, record]))
+  const totalReadings = Number(totalReadingsRow?.total ?? 0)
+  const completedReadings = Number(completedReadingsRow?.total ?? 0)
+  const failedReadings = Number(failedReadingsRow?.total ?? 0)
+
+  return adminOverviewSchema.parse({
+    generatedAt: new Date().toISOString(),
+    summary: {
+      totalReadings,
+      completedReadings,
+      failedReadings,
+      inProgressReadings: Math.max(0, totalReadings - completedReadings - failedReadings),
+      shareCopies: eventCounts.share_copied ?? 0,
+      shareViews: eventCounts.share_page_viewed ?? 0,
+      replays: eventCounts.replay_started ?? 0,
+      emailsSent: eventCounts.email_sent ?? 0,
+    },
+    spreadBreakdown: spreadRows
+      .map((row) => ({
+        spreadType: row.spreadType,
+        spreadName: row.spreadName,
+        count: Number(row.total),
+      }))
+      .sort((left, right) => right.count - left.count),
+    eventBreakdown: Object.entries(eventCounts)
+      .map(([eventType, eventCount]) => ({ eventType, count: eventCount }))
+      .sort((left, right) => right.count - left.count),
+    recentReadings: recentReadings.map((record) =>
+      serializeAdminReading(record, eventCountsByReading.get(record.id) ?? {}),
+    ),
+    recentEvents: recentEvents.map((record) => serializeAdminEvent(record, readingLookup)),
+  })
 }
 
 export function resetInMemoryPersistence() {

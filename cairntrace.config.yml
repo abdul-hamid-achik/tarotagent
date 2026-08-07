@@ -13,9 +13,11 @@ webServer:
     bun run dev --host 127.0.0.1 --port 4173
   env:
     SITE_URL: http://127.0.0.1:4173
+    DATABASE_URL: ''
     PORT: '4173'
     NITRO_PORT: '4173'
     TAROT_AGENT_TEST_MODE: '1'
+    ADMIN_EMAIL: abdulachik@icloud.com
   url: http://127.0.0.1:4173
   readyTimeoutMs: 120000
   reuseExisting: true

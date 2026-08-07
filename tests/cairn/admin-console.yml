@@ -1,0 +1,81 @@
+version: 1
+name: admin_product_console
+intent: The product owner can access private product signals while guests cannot.
+coldStart: guest
+
+metadata:
+  tags:
+    - smoke
+    - admin
+    - analytics
+
+outcomes:
+  - id: guest_access_is_restricted
+    description: A visitor without the owner account cannot see product data.
+    verify:
+      network:
+        method: GET
+        urlContains: /api/admin/overview
+        status:
+          equals: 401
+
+  - id: owner_console_loads
+    description: The configured owner account can open the private product console.
+    verify:
+      text:
+        contains: Reading intelligence
+
+  - id: owner_questions_are_visible
+    description: The private console shows the question captured by a reading.
+    verify:
+      text:
+        contains: How should I use my energy this week?
+
+  - id: browser_console_is_clean
+    description: The admin flow produces no browser console errors.
+    verify:
+      console:
+        errorsMax: 0
+
+steps:
+  - open:
+      path: /admin
+      waitUntil: networkidle
+  - wait:
+      text: Admin access only
+      timeoutMs: 10000
+  - request:
+      method: POST
+      url: /api/account/register
+      body:
+        email: abdulachik@icloud.com
+        displayName: Product Owner
+      expectStatus: 200
+  - open:
+      path: /
+      waitUntil: networkidle
+  - fill:
+      by: label
+      name: Your question
+      value: How should I use my energy this week?
+  - click:
+      by: role
+      role: button
+      name: Three Card
+  - click:
+      by: role
+      role: button
+      name: Draw Cards
+  - wait:
+      text: Share
+      timeoutMs: 15000
+  - open:
+      path: /admin
+      waitUntil: networkidle
+  - wait:
+      text: Reading intelligence
+      timeoutMs: 10000
+  - wait:
+      text: How should I use my energy this week?
+      timeoutMs: 10000
+contractHash: sha256:1234eedaa6fb3ec2f0e77446b1079a4f39f0fd752ed079710b9f3d5570a1ea7d

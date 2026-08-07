@@ -24,6 +24,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     databaseUrl: '',
     aiGatewayApiKey: '',
+    adminEmail: '',
     resendApiKey: '',
     resendFromEmail: '',
     redisRestUrl: '',

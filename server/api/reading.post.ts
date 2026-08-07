@@ -15,6 +15,23 @@ import { getValidatedRuntimeConfig, requireAiGatewayApiKey } from '../utils/env'
 import { assertRateLimit } from '../utils/rate-limit'
 import { getAccountSessionToken, getOrCreateAnonymousSessionId } from '../utils/session'
 
+function writeReadingLog(
+  level: 'info' | 'error',
+  payload: Record<string, string | number | boolean | null | undefined>,
+) {
+  const line = JSON.stringify({
+    level,
+    service: 'tarotagent',
+    ...payload,
+  })
+
+  if (level === 'error') {
+    console.error(line)
+  } else {
+    console.info(line)
+  }
+}
+
 export default defineEventHandler(async (event) => {
   const requestBody = await readBody(event)
   const parsedBody = createReadingRequestSchema.safeParse(requestBody)
@@ -42,6 +59,17 @@ export default defineEventHandler(async (event) => {
     spreadType,
     sessionId,
     userId: account?.id ?? null,
+  })
+  const startedAt = Date.now()
+  const requestId =
+    (event.node.req.headers['x-vercel-id'] ?? event.node.req.headers['x-request-id'])?.toString() ??
+    crypto.randomUUID()
+
+  writeReadingLog('info', {
+    message: 'reading_started',
+    requestId,
+    readingId: reading.id,
+    spreadType,
   })
 
   await recordReadingEvent({
@@ -83,6 +111,12 @@ export default defineEventHandler(async (event) => {
         },
       ],
       onFirstTextChunk: async () => {
+        writeReadingLog('info', {
+          message: 'reading_stream_started',
+          requestId,
+          readingId: reading.id,
+          elapsedMs: Date.now() - startedAt,
+        })
         await recordReadingEvent({
           eventType: 'reading_stream_started',
           readingId: reading.id,
@@ -91,6 +125,13 @@ export default defineEventHandler(async (event) => {
         })
       },
       onComplete: async (finalText) => {
+        writeReadingLog('info', {
+          message: 'reading_completed',
+          requestId,
+          readingId: reading.id,
+          characterCount: finalText.length,
+          elapsedMs: Date.now() - startedAt,
+        })
         await completeReadingRecord({
           readingId: reading.id,
           finalText,
@@ -107,6 +148,13 @@ export default defineEventHandler(async (event) => {
         })
       },
       onError: async (error) => {
+        writeReadingLog('error', {
+          message: 'reading_generation_failed',
+          requestId,
+          readingId: reading.id,
+          errorMessage: error.message,
+          elapsedMs: Date.now() - startedAt,
+        })
         await failReadingRecord({
           readingId: reading.id,
           errorMessage: error.message,
@@ -132,6 +180,14 @@ export default defineEventHandler(async (event) => {
   } catch (error) {
     const normalizedError =
       error instanceof Error ? error : new Error('Failed to start this reading.')
+
+    writeReadingLog('error', {
+      message: 'reading_request_failed',
+      requestId,
+      readingId: reading.id,
+      errorMessage: normalizedError.message,
+      elapsedMs: Date.now() - startedAt,
+    })
 
     await failReadingRecord({
       readingId: reading.id,

@@ -5,6 +5,7 @@ import { z } from 'zod'
 const rawRuntimeConfigSchema = z.object({
   databaseUrl: z.string(),
   aiGatewayApiKey: z.string(),
+  adminEmail: z.string(),
   resendApiKey: z.string(),
   resendFromEmail: z.string(),
   redisRestUrl: z.string(),
@@ -27,6 +28,23 @@ type RawRuntimeConfig = z.infer<typeof rawRuntimeConfigSchema>
 
 function firstNonEmpty(...values: Array<string | undefined | null>): string {
   return values.find((value) => value?.trim())?.trim() ?? ''
+}
+
+/**
+ * Environment managers generally remove dotenv quotes for us, but a key copied
+ * with literal outer quotes should not make it to the provider unchanged.
+ */
+function normalizeConfiguredSecret(value: string): string {
+  let normalized = value.trim()
+
+  while (
+    (normalized.startsWith('"') && normalized.endsWith('"')) ||
+    (normalized.startsWith("'") && normalized.endsWith("'"))
+  ) {
+    normalized = normalized.slice(1, -1).trim()
+  }
+
+  return normalized.replace(/^['"]+|['"]+$/g, '').trim()
 }
 
 function redisRestConfigFromKvUrl(value: string | undefined): { url: string; token: string } {
@@ -60,7 +78,10 @@ function normalizeSiteUrl(value: string): string {
 
 function resolveRuntimeConfig(config: RawRuntimeConfig): AppRuntimeConfig {
   const databaseUrl = firstNonEmpty(process.env.DATABASE_URL, config.databaseUrl)
-  const aiGatewayApiKey = firstNonEmpty(process.env.AI_GATEWAY_API_KEY, config.aiGatewayApiKey)
+  const aiGatewayApiKey = normalizeConfiguredSecret(
+    firstNonEmpty(process.env.AI_GATEWAY_API_KEY, config.aiGatewayApiKey),
+  )
+  const adminEmail = firstNonEmpty(process.env.ADMIN_EMAIL, config.adminEmail).toLowerCase()
   const resendApiKey = firstNonEmpty(process.env.RESEND_API_KEY, config.resendApiKey)
   const resendFromEmail = firstNonEmpty(process.env.RESEND_FROM_EMAIL, config.resendFromEmail)
   const kvUrlRedisConfig = redisRestConfigFromKvUrl(process.env.KV_URL)
@@ -81,6 +102,7 @@ function resolveRuntimeConfig(config: RawRuntimeConfig): AppRuntimeConfig {
     ...config,
     databaseUrl,
     aiGatewayApiKey,
+    adminEmail,
     resendApiKey,
     resendFromEmail,
     redisRestUrl,
@@ -110,7 +132,7 @@ export function isTestMode(): boolean {
 }
 
 export function requireAiGatewayApiKey(event?: H3Event): string {
-  const apiKey = getValidatedRuntimeConfig(event).aiGatewayApiKey.trim()
+  const apiKey = normalizeConfiguredSecret(getValidatedRuntimeConfig(event).aiGatewayApiKey)
   if (apiKey) {
     return apiKey
   }

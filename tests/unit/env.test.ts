@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 const EMPTY_RUNTIME_CONFIG = {
   databaseUrl: '',
   aiGatewayApiKey: '',
+  adminEmail: '',
   resendApiKey: '',
   resendFromEmail: '',
   redisRestUrl: '',
@@ -17,6 +18,7 @@ const EMPTY_RUNTIME_CONFIG = {
 describe('runtime environment helpers', () => {
   const originalEnv = {
     aiGatewayApiKey: process.env.AI_GATEWAY_API_KEY,
+    adminEmail: process.env.ADMIN_EMAIL,
     databaseUrl: process.env.DATABASE_URL,
     resendApiKey: process.env.RESEND_API_KEY,
     resendFromEmail: process.env.RESEND_FROM_EMAIL,
@@ -34,6 +36,7 @@ describe('runtime environment helpers', () => {
       EMPTY_RUNTIME_CONFIG
 
     process.env.AI_GATEWAY_API_KEY = 'runtime-ai-gateway-key'
+    process.env.ADMIN_EMAIL = 'abdulachik@icloud.com'
     process.env.DATABASE_URL = 'postgres://runtime-database-url'
     process.env.RESEND_API_KEY = 'runtime-resend-key'
     process.env.RESEND_FROM_EMAIL = 'Tarot Agent <no-reply@example.com>'
@@ -49,6 +52,9 @@ describe('runtime environment helpers', () => {
   afterEach(() => {
     if (originalEnv.aiGatewayApiKey === undefined) delete process.env.AI_GATEWAY_API_KEY
     else process.env.AI_GATEWAY_API_KEY = originalEnv.aiGatewayApiKey
+
+    if (originalEnv.adminEmail === undefined) delete process.env.ADMIN_EMAIL
+    else process.env.ADMIN_EMAIL = originalEnv.adminEmail
 
     if (originalEnv.databaseUrl === undefined) delete process.env.DATABASE_URL
     else process.env.DATABASE_URL = originalEnv.databaseUrl
@@ -95,6 +101,7 @@ describe('runtime environment helpers', () => {
     expect(config).toMatchObject({
       databaseUrl: 'postgres://runtime-database-url',
       aiGatewayApiKey: 'runtime-ai-gateway-key',
+      adminEmail: 'abdulachik@icloud.com',
       resendApiKey: 'runtime-resend-key',
       resendFromEmail: 'Tarot Agent <no-reply@example.com>',
       redisRestUrl: 'https://runtime-redis.upstash.io',
@@ -112,6 +119,14 @@ describe('runtime environment helpers', () => {
       fromEmail: 'Tarot Agent <no-reply@example.com>',
     })
     expect(isEmailDeliveryConfigured()).toBe(true)
+  })
+
+  it('removes accidental outer quotes from the AI Gateway key', async () => {
+    process.env.AI_GATEWAY_API_KEY = '"runtime-ai-gateway-key"'
+
+    const { requireAiGatewayApiKey } = await import('../../server/utils/env')
+
+    expect(requireAiGatewayApiKey()).toBe('runtime-ai-gateway-key')
   })
 
   it('derives Redis REST config from Vercel KV_URL when REST env vars are absent', async () => {

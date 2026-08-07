@@ -202,6 +202,10 @@ export async function createReadingStream(
           }
         }
 
+        if (!finalText.trim()) {
+          throw new Error('The reading service returned an empty interpretation.')
+        }
+
         await options.onComplete?.(finalText)
         pushEvent({
           type: 'done',

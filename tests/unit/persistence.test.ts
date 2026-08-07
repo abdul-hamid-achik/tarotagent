@@ -6,6 +6,7 @@ describe('persistence service', () => {
     ;(globalThis as { useRuntimeConfig?: () => unknown }).useRuntimeConfig = () => ({
       databaseUrl: '',
       aiGatewayApiKey: '',
+      adminEmail: '',
       resendApiKey: '',
       resendFromEmail: '',
       redisRestUrl: '',
@@ -104,6 +105,89 @@ describe('persistence service', () => {
       shareSlug: reading.shareSlug,
       sessionId: 'session-analytics',
     })
+  })
+
+  it('builds a private product overview from readings and events', async () => {
+    const {
+      completeReadingRecord,
+      createReadingRecord,
+      failReadingRecord,
+      getAdminOverview,
+      recordReadingEvent,
+    } = await import('../../server/services/persistence')
+
+    const completedReading = await createReadingRecord({
+      question: 'What should I build next?',
+      spreadType: 'three-card',
+      sessionId: 'session-admin',
+    })
+    await completeReadingRecord({
+      readingId: completedReading.id,
+      finalText: 'Build the smallest useful version first.',
+    })
+
+    await recordReadingEvent({
+      eventType: 'share_page_viewed',
+      readingId: completedReading.id,
+      shareSlug: completedReading.shareSlug,
+      sessionId: 'session-admin',
+    })
+    await recordReadingEvent({
+      eventType: 'share_copied',
+      readingId: completedReading.id,
+      shareSlug: completedReading.shareSlug,
+      sessionId: 'session-admin',
+    })
+
+    const failedReading = await createReadingRecord({
+      question: 'Why did this fail?',
+      spreadType: 'single',
+      sessionId: 'session-admin',
+    })
+    await failReadingRecord({
+      readingId: failedReading.id,
+      errorMessage: 'The reading service could not complete this request.',
+    })
+
+    const overview = await getAdminOverview()
+
+    expect(overview.summary).toMatchObject({
+      totalReadings: 2,
+      completedReadings: 1,
+      failedReadings: 1,
+      shareViews: 1,
+      shareCopies: 1,
+    })
+    expect(overview.recentReadings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          question: 'Why did this fail?',
+          status: 'failed',
+        }),
+        expect.objectContaining({
+          question: 'What should I build next?',
+          status: 'completed',
+          eventCounts: {
+            share_page_viewed: 1,
+            share_copied: 1,
+          },
+        }),
+      ]),
+    )
+    /*
+     * The memory adapter may create both records in the same millisecond, so
+     * the overview's stable timestamp sort is intentionally not asserted here.
+     */
+    expect(overview.recentReadings.find((reading) => reading.status === 'failed')).toMatchObject({
+      question: 'Why did this fail?',
+      status: 'failed',
+    })
+    expect(overview.eventBreakdown).toEqual(
+      expect.arrayContaining([
+        { eventType: 'share_page_viewed', count: 1 },
+        { eventType: 'share_copied', count: 1 },
+      ]),
+    )
   })
 
   it('creates an account, claims anonymous readings, and resolves account sessions', async () => {
