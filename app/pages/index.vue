@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SpreadType } from '~~/shared/tarot'
+import { spreadDefinitions } from '~~/shared/tarot'
 import type { ClientConfig } from '~~/shared/config'
 import { spreadOptions } from '~~/shared/readings'
 import { useReadingAnalytics } from '~/composables/useReadingAnalytics'
@@ -97,6 +98,11 @@ watch(isCompleted, (completed) => {
     void loadAccount()
   }
 })
+
+function cardCountLabel(spread: SpreadType) {
+  const count = spreadDefinitions[spread].positions.length
+  return count === 1 ? '1 card' : `${count} cards`
+}
 
 function selectSpread(nextSpreadType: SpreadType) {
   spreadType.value = nextSpreadType
@@ -232,97 +238,45 @@ function closeAccountModal() {
 </script>
 
 <template>
-  <div
-    class="flex w-full flex-col items-center"
-    :class="hasReading ? 'gap-4 sm:gap-6' : 'gap-6 sm:gap-10'"
-  >
+  <div class="flex w-full flex-col items-center" :class="hasReading ? 'gap-6' : 'gap-8 sm:gap-14'">
     <section
-      class="text-center"
-      :class="hasReading ? 'pb-0 pt-2 sm:pt-4' : 'pb-2 pt-6 sm:pb-4 sm:pt-8'"
+      class="flex w-full flex-col items-center text-center"
+      :class="hasReading ? 'pt-0' : 'pt-0 sm:pt-6'"
     >
-      <div class="animate-float inline-block" :class="hasReading ? 'mb-3' : 'mb-6'">
+      <div
+        v-if="!hasReading"
+        class="animate-float relative mb-6 h-28 w-40 sm:mb-8 sm:h-48 sm:w-72"
+        aria-hidden="true"
+      >
         <img
           src="/cards/back.png"
           alt=""
-          class="rounded-lg border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
-          :class="
-            hasReading
-              ? 'h-[5.625rem] w-16 sm:h-[7.03125rem] sm:w-20'
-              : 'h-[7.03125rem] w-20 sm:h-[8.4375rem] sm:w-24'
-          "
-          aria-hidden="true"
+          class="absolute bottom-0 left-[8%] h-[5.25rem] w-[3.75rem] origin-bottom -rotate-[11deg] rounded-lg border border-gold-500/25 object-cover shadow-2xl shadow-mystic-950/70 sm:left-[10%] sm:h-[8.5rem] sm:w-[6.05rem]"
+        />
+        <img
+          src="/cards/back.png"
+          alt=""
+          class="absolute bottom-0 right-[8%] h-[5.25rem] w-[3.75rem] origin-bottom rotate-[11deg] rounded-lg border border-gold-500/25 object-cover shadow-2xl shadow-mystic-950/70 sm:right-[10%] sm:h-[8.5rem] sm:w-[6.05rem]"
+        />
+        <img
+          src="/cards/back.png"
+          alt=""
+          class="absolute left-1/2 top-0 z-10 h-[5.9rem] w-[4.2rem] -translate-x-1/2 rounded-lg border border-gold-400/40 object-cover shadow-2xl shadow-gold-500/15 sm:h-[9.5rem] sm:w-[6.75rem]"
         />
       </div>
       <h2
-        class="font-display font-semibold tracking-wide text-mystic-100"
-        :class="hasReading ? 'mb-2 text-2xl sm:text-3xl' : 'mb-3 text-3xl sm:text-4xl'"
+        class="font-display font-semibold tracking-[0.06em] text-mystic-100"
+        :class="hasReading ? 'text-xl sm:text-2xl' : 'text-3xl leading-tight sm:text-6xl'"
       >
         Consult the Cards
       </h2>
       <p
         v-if="!hasReading"
-        class="mx-auto max-w-md text-sm leading-relaxed text-mystic-300 sm:text-base"
+        class="mx-auto mt-4 max-w-md text-base leading-relaxed text-mystic-300 sm:mt-5 sm:text-lg"
       >
-        An AI-powered tarot reading experience. Focus your mind, ask your question, and let the
-        cards reveal their wisdom.
+        Ask one question, choose a spread, and let Aurelia read the cards.
       </p>
     </section>
-
-    <div class="flex w-full max-w-2xl justify-end">
-      <button
-        type="button"
-        class="group inline-flex min-h-11 max-w-full items-center gap-2.5 rounded-full border border-mystic-700/70 bg-mystic-900/55 px-3 py-2 text-left shadow-lg shadow-mystic-950/10 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold-500/45 hover:bg-mystic-800/70 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:ring-offset-2 focus:ring-offset-mystic-900 active:translate-y-0"
-        aria-controls="account-archive-panel"
-        :aria-expanded="accountModalOpen"
-        aria-label="Open reading archive"
-        @click="openAccountModal"
-      >
-        <span
-          class="flex size-7 shrink-0 items-center justify-center rounded-full bg-gold-500/10 text-gold-300 transition-colors group-hover:bg-gold-500/20"
-          aria-hidden="true"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="size-4"
-          >
-            <path d="M4 8.5v10.25A1.25 1.25 0 0 0 5.25 20h13.5A1.25 1.25 0 0 0 20 18.75V8.5" />
-            <path d="M3 8.5h18l-1.5-4h-15L3 8.5Z" />
-            <path d="M9 12.5h6" />
-          </svg>
-        </span>
-        <span class="min-w-0">
-          <span class="block truncate text-xs font-medium text-mystic-100">
-            {{ account ? account.displayName || 'Reading archive' : 'Save your readings' }}
-          </span>
-          <span class="block text-[11px] text-mystic-400">
-            <template v-if="account">
-              {{ accountReadings.length }}
-              {{ accountReadings.length === 1 ? 'saved reading' : 'saved readings' }}
-            </template>
-            <template v-else
-              >Optional <span aria-hidden="true">&middot;</span> restore later</template
-            >
-          </span>
-        </span>
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="size-4 shrink-0 text-mystic-500 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-gold-300"
-          aria-hidden="true"
-        >
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-      </button>
-    </div>
 
     <Transition
       enter-active-class="transition-all duration-500 ease-out"
@@ -333,71 +287,65 @@ function closeAccountModal() {
       leave-to-class="opacity-0 -translate-y-4"
       mode="out-in"
     >
-      <section v-if="!hasReading" key="input" class="w-full max-w-2xl flex flex-col gap-6">
-        <div class="grid gap-2">
-          <label for="reading-question" class="text-left text-sm font-medium text-mystic-200">
-            Your question
-          </label>
+      <section v-if="!hasReading" key="input" class="w-full max-w-2xl">
+        <div
+          class="rounded-[2rem] border border-white/[0.06] bg-mystic-800/25 p-1.5 shadow-[0_30px_80px_-30px_rgba(5,5,20,0.7)]"
+        >
           <div
-            class="rounded-xl border border-mystic-600/60 bg-mystic-800/45 p-3 shadow-inner shadow-mystic-950/40 transition-colors focus-within:border-gold-500/60 focus-within:bg-mystic-800/65"
+            class="rounded-[calc(2rem-0.375rem)] border border-mystic-700/50 bg-mystic-900/85 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] sm:p-7"
           >
-            <UTextarea
-              id="reading-question"
-              v-model="question"
-              placeholder="What wisdom do you seek?"
-              :rows="3"
-              :maxlength="500"
-              autoresize
-              size="lg"
-              class="w-full"
-              :disabled="!isHydrated || isLoading"
-              aria-describedby="reading-question-hint"
-              @keydown="handleQuestionKeydown"
-            />
-          </div>
-          <div
-            id="reading-question-hint"
-            class="flex items-center justify-between gap-3 text-xs text-mystic-300"
-          >
-            <span>Ask one focused question for a clearer reading.</span>
-            <span class="shrink-0 tabular-nums">{{ question.length }}/500</span>
-          </div>
-          <div
-            v-if="!question.trim()"
-            class="flex flex-wrap items-center gap-2 pt-1"
-            aria-label="Example questions"
-          >
-            <span class="text-xs text-mystic-400">Try:</span>
-            <button
-              v-for="prompt in promptSuggestions"
-              :key="prompt"
-              type="button"
-              class="rounded-full border border-mystic-600/60 px-3 py-1.5 text-left text-xs text-mystic-300 transition-colors hover:border-gold-500/50 hover:text-gold-300 focus:outline-none focus:ring-2 focus:ring-gold-500/50 active:scale-[0.98]"
-              @click="usePromptSuggestion(prompt)"
-            >
-              {{ prompt }}
-            </button>
-          </div>
-        </div>
-
-        <div class="rounded-xl border border-mystic-600/30 bg-mystic-800/40 p-4 sm:p-6">
-          <div class="flex flex-col items-center gap-4">
-            <div class="w-full">
-              <div class="mb-3 flex items-end justify-between gap-3">
-                <div>
-                  <p class="font-display text-sm uppercase tracking-widest text-gold-300">
-                    Choose a spread
-                  </p>
-                  <p class="mt-1 text-xs text-mystic-400">Match the layout to your question.</p>
-                </div>
-                <span
-                  class="shrink-0 rounded-full border border-mystic-700/60 px-2.5 py-1 text-xs text-mystic-400"
-                >
-                  {{ spreadOptions.length }} options
-                </span>
+            <div class="grid gap-3">
+              <label for="reading-question" class="text-sm font-medium text-mystic-200">
+                Your question
+              </label>
+              <div
+                class="rounded-2xl bg-mystic-800/35 p-3 ring-1 ring-mystic-600/40 transition-shadow focus-within:ring-2 focus-within:ring-gold-500/60"
+              >
+                <UTextarea
+                  id="reading-question"
+                  v-model="question"
+                  placeholder="What wisdom do you seek?"
+                  :rows="3"
+                  :maxlength="500"
+                  autoresize
+                  size="lg"
+                  class="w-full"
+                  :disabled="!isHydrated || isLoading"
+                  aria-describedby="reading-question-hint"
+                  @keydown="handleQuestionKeydown"
+                />
               </div>
               <div
-                class="grid w-full grid-cols-2 gap-2 sm:grid-cols-3"
+                id="reading-question-hint"
+                class="flex items-center justify-between gap-3 text-xs text-mystic-300"
+              >
+                <span>Ask one focused question for a clearer reading.</span>
+                <span class="shrink-0 tabular-nums">{{ question.length }}/500</span>
+              </div>
+              <div
+                v-if="!question.trim()"
+                class="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 scrollbar-hide sm:mx-0 sm:flex-nowrap sm:overflow-visible sm:px-0"
+                role="group"
+                aria-label="Example questions"
+              >
+                <button
+                  v-for="prompt in promptSuggestions"
+                  :key="prompt"
+                  type="button"
+                  class="inline-flex min-h-11 shrink-0 snap-start items-center whitespace-nowrap rounded-full border border-mystic-600/60 px-3.5 text-xs text-mystic-300 transition-colors duration-200 hover:border-gold-500/50 hover:text-gold-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 active:scale-[0.98]"
+                  @click="usePromptSuggestion(prompt)"
+                >
+                  {{ prompt }}
+                </button>
+              </div>
+            </div>
+
+            <div class="my-5 h-px bg-mystic-700/50" aria-hidden="true"></div>
+
+            <div>
+              <p class="font-display text-sm tracking-widest text-gold-300">Choose a spread</p>
+              <div
+                class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3"
                 role="group"
                 aria-label="Select spread type"
                 aria-describedby="spread-description"
@@ -406,34 +354,40 @@ function closeAccountModal() {
                   v-for="option in spreadOptions"
                   :key="option.value"
                   type="button"
-                  class="min-h-11 w-full cursor-pointer rounded-lg border px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-500/50 active:scale-[0.98]"
+                  class="group flex min-h-14 w-full cursor-pointer flex-col items-start justify-center gap-0.5 rounded-xl border px-4 py-2.5 text-left text-sm font-medium whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                   :class="
                     spreadType === option.value
-                      ? 'border-gold-300/80 bg-gold-500 text-mystic-900 shadow-lg shadow-gold-500/20 ring-2 ring-gold-300/25'
-                      : 'border-mystic-600/60 bg-mystic-700/40 text-mystic-300 hover:border-gold-500/40 hover:bg-mystic-600/50 hover:text-mystic-100'
+                      ? 'border-gold-300/70 bg-gold-500 text-mystic-900 shadow-lg shadow-gold-500/20'
+                      : 'border-mystic-600/50 bg-mystic-800/50 text-mystic-200 hover:border-gold-500/40 hover:text-mystic-100'
                   "
                   :disabled="!isHydrated || isLoading"
                   :aria-pressed="spreadType === option.value"
                   @click="selectSpread(option.value)"
                 >
-                  {{ option.label }}
+                  <span>{{ option.label }}</span>
+                  <span
+                    aria-hidden="true"
+                    class="text-[11px] font-normal"
+                    :class="spreadType === option.value ? 'text-mystic-900/70' : 'text-mystic-400'"
+                  >
+                    {{ cardCountLabel(option.value) }}
+                  </span>
                 </button>
               </div>
+              <p
+                id="spread-description"
+                class="mt-3 flex min-h-5 items-start gap-2 text-sm leading-relaxed text-mystic-300"
+                aria-live="polite"
+              >
+                <span
+                  class="mt-[0.5rem] size-1.5 shrink-0 rounded-full bg-gold-500"
+                  aria-hidden="true"
+                ></span>
+                <span>{{ spreadDescription }}</span>
+              </p>
             </div>
 
-            <div
-              class="w-full max-w-sm rounded-lg border border-gold-500/20 bg-gold-500/5 px-4 py-3 text-center"
-              aria-live="polite"
-            >
-              <p class="font-display text-sm text-gold-300">
-                {{ spreadName }}
-              </p>
-              <p id="spread-description" class="mt-1 text-sm text-mystic-300">
-                {{ spreadDescription }}
-              </p>
-            </div>
-
-            <div class="w-full border-t border-mystic-700/50 pt-4 text-center">
+            <div class="mt-5 flex flex-col items-center gap-3 border-t border-mystic-700/50 pt-5">
               <UButton
                 type="button"
                 size="lg"
@@ -443,103 +397,128 @@ function closeAccountModal() {
                 :loading="isLoading"
                 :disabled="!canDraw"
                 aria-describedby="draw-hint"
-                class="group w-full justify-center px-6 py-3 text-base font-semibold shadow-lg shadow-gold-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-gold-500/25 active:translate-y-0 active:scale-[0.98] disabled:!border-mystic-600/60 disabled:!bg-mystic-700/60 disabled:!text-mystic-400 disabled:!opacity-100 disabled:translate-y-0 disabled:shadow-none sm:min-w-56 sm:w-auto"
+                class="group min-h-12 w-full justify-center rounded-full border px-8 text-base font-semibold tracking-wide !border-gold-500 !bg-gold-500 !text-mystic-900 shadow-lg shadow-gold-500/20 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:!bg-gold-400 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-gold-500/25 active:translate-y-0 active:scale-[0.98] disabled:!border-mystic-600 disabled:!bg-mystic-800 disabled:!text-mystic-200 disabled:!opacity-100 disabled:translate-y-0 disabled:shadow-none disabled:cursor-not-allowed sm:w-auto sm:min-w-64"
                 @click="handleStartReading"
               >
                 <template #leading>
                   <span
                     v-if="!isLoading"
-                    class="transition-transform duration-200 group-hover:rotate-12"
+                    class="transition-transform duration-300 group-hover:rotate-12"
                     aria-hidden="true"
                     >&#10022;</span
                   >
                 </template>
                 {{ isLoading ? 'Reading the cards...' : 'Draw cards' }}
-                <template v-if="!isLoading" #trailing>
+                <template v-if="!isLoading && canDraw" #trailing>
                   <span
-                    class="hidden rounded border border-black/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider opacity-70 sm:inline"
+                    class="hidden rounded border border-mystic-900/20 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider opacity-70 sm:inline"
                     aria-hidden="true"
                   >
                     &#8984; / Ctrl &#8629;
                   </span>
                 </template>
               </UButton>
-              <p id="draw-hint" class="mt-2 text-center text-xs text-mystic-400">
+              <p id="draw-hint" class="text-center text-xs text-mystic-300">
                 <span v-if="!question.trim()">Write a question above to begin.</span>
-                <span v-else
-                  >No account required. You can save the reading whenever you are ready.</span
-                >
+                <span v-else>No account required. Save the reading whenever you are ready.</span>
               </p>
             </div>
           </div>
         </div>
 
-        <p v-if="error" class="text-red-400 text-sm text-center" role="alert">
+        <p v-if="error" class="mt-4 text-center text-sm text-red-400" role="alert">
           {{ error }}
         </p>
       </section>
 
-      <section
+      <ReadingStage
         v-else
         key="reading"
-        class="flex w-full max-w-5xl flex-col items-center gap-6 sm:gap-8"
-      >
-        <ReadingMetaCard
-          :spread-name="spreadName"
-          :question="question"
-          :spread-description="spreadDescription"
-          :share-slug="shareSlug"
-          :share-url="shareUrl"
-        />
-
-        <div
-          v-if="isLoading && cards.length === 0"
-          class="w-full flex justify-center py-8"
-          aria-live="polite"
-          aria-busy="true"
-        >
-          <div class="flex flex-col items-center gap-4">
-            <div
-              class="w-32 aspect-[32/45] sm:w-40 rounded-lg bg-mystic-700/30 animate-pulse border border-mystic-600/20"
-            />
-            <p class="text-sm text-mystic-400 font-display">Shuffling the deck...</p>
-          </div>
-        </div>
-
-        <TarotSpread
-          v-else
-          :cards="cards"
-          :spread-type="spreadType"
-          :revealed="isRevealed"
-          :reveal-timings="revealTimingsMs"
-        />
-
-        <div class="flex w-full max-w-3xl flex-col gap-4">
-          <ReadingDisplay :text="readingText" :is-streaming="isStreaming" :error="error" />
-
-          <ReadingActions
-            v-if="isCompleted"
-            :share-url="shareUrl"
-            :is-replaying="isReplaying"
-            :is-sending-email="isSendingEmail"
-            :share-message="shareMessage.message.value"
-            :email-message="emailMessage.message.value"
-            :email-error="emailError.message.value"
-            @share="handleShare"
-            @replay="handleReplay"
-            @new-reading="handleNewReading"
-            @email-request="handleEmailRequest"
-          />
-
-          <div v-else-if="isFailed" class="flex flex-wrap gap-3">
-            <UButton @click="handleStartReading">Retry Reading</UButton>
-            <UButton variant="outline" color="neutral" @click="handleNewReading"
-              >New Reading</UButton
-            >
-          </div>
-        </div>
-      </section>
+        :question="question"
+        :spread-type="spreadType"
+        :spread-name="spreadName"
+        :spread-description="spreadDescription"
+        :cards="cards"
+        :reading-text="readingText"
+        :is-loading="isLoading"
+        :is-streaming="isStreaming"
+        :is-revealed="isRevealed"
+        :is-replaying="isReplaying"
+        :is-completed="isCompleted"
+        :is-failed="isFailed"
+        :error="error"
+        :share-slug="shareSlug"
+        :share-url="shareUrl"
+        :reveal-timings-ms="revealTimingsMs"
+        :is-sending-email="isSendingEmail"
+        :share-message="shareMessage.message.value"
+        :email-message="emailMessage.message.value"
+        :email-error="emailError.message.value"
+        @share="handleShare"
+        @replay="handleReplay"
+        @retry="handleStartReading"
+        @new-reading="handleNewReading"
+        @email-request="handleEmailRequest"
+      />
     </Transition>
+
+    <ClientOnly>
+      <Teleport to="#header-actions">
+        <button
+          type="button"
+          class="group inline-flex min-h-11 max-w-full items-center gap-2.5 rounded-full border border-mystic-600/60 bg-mystic-800/60 py-1 pl-1 pr-3 text-left transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-px hover:border-gold-500/45 hover:bg-mystic-700/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-mystic-900 active:translate-y-0 active:scale-[0.98] sm:pr-4"
+          aria-controls="account-archive-panel"
+          :aria-expanded="accountModalOpen"
+          aria-label="Open reading archive"
+          @click="openAccountModal"
+        >
+          <span
+            class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gold-500/10 text-gold-300 transition-colors duration-300 group-hover:bg-gold-500/20"
+            aria-hidden="true"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="size-4"
+            >
+              <path d="M4 8.5v10.25A1.25 1.25 0 0 0 5.25 20h13.5A1.25 1.25 0 0 0 20 18.75V8.5" />
+              <path d="M3 8.5h18l-1.5-4h-15L3 8.5Z" />
+              <path d="M9 12.5h6" />
+            </svg>
+          </span>
+          <span class="min-w-0">
+            <span class="block truncate text-xs font-medium text-mystic-100">
+              {{ account ? account.displayName || 'Reading archive' : 'Save your readings' }}
+            </span>
+            <span class="hidden text-[11px] text-mystic-400 sm:block">
+              <template v-if="account">
+                {{ accountReadings.length }}
+                {{ accountReadings.length === 1 ? 'saved reading' : 'saved readings' }}
+              </template>
+              <template v-else
+                >Optional <span aria-hidden="true">&middot;</span> restore later</template
+              >
+            </span>
+          </span>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="hidden size-4 shrink-0 text-mystic-500 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:text-gold-300 sm:block"
+            aria-hidden="true"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
+      </Teleport>
+    </ClientOnly>
 
     <UModal
       v-model:open="accountModalOpen"

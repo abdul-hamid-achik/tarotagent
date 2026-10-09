@@ -52,6 +52,48 @@ const loginEmailLooksValid = computed(() =>
 const loginCodeLooksValid = computed(() => /^\d{6}$/.test(loginCode.value.trim()))
 const hasReadings = computed(() => props.readings.length > 0)
 
+const controlClass =
+  'min-h-11 rounded-lg px-3 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-300 focus-visible:ring-offset-2 focus-visible:ring-offset-mystic-900'
+
+const primaryClass =
+  'min-h-11 justify-center border border-gold-500 bg-gold-500 text-mystic-900 hover:bg-gold-400 active:bg-gold-500 focus-visible:ring-gold-300 focus-visible:ring-offset-mystic-900 disabled:!border-mystic-600 disabled:!bg-mystic-800 disabled:!text-mystic-200 disabled:!opacity-100 disabled:cursor-not-allowed'
+
+const relativeFormatter = new Intl.RelativeTimeFormat(undefined, {
+  numeric: 'auto',
+})
+const shortDateFormatter = new Intl.DateTimeFormat(undefined, {
+  month: 'short',
+  day: 'numeric',
+})
+
+function formatReadingDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return ''
+  }
+
+  const diffSeconds = Math.round((date.getTime() - Date.now()) / 1000)
+  const absoluteSeconds = Math.abs(diffSeconds)
+
+  if (absoluteSeconds >= 7 * 86400) {
+    return shortDateFormatter.format(date)
+  }
+
+  if (absoluteSeconds >= 86400) {
+    return relativeFormatter.format(Math.round(diffSeconds / 86400), 'day')
+  }
+
+  if (absoluteSeconds >= 3600) {
+    return relativeFormatter.format(Math.round(diffSeconds / 3600), 'hour')
+  }
+
+  if (absoluteSeconds >= 60) {
+    return relativeFormatter.format(Math.round(diffSeconds / 60), 'minute')
+  }
+
+  return 'Just now'
+}
+
 function saveAccount() {
   if (!emailLooksValid.value) {
     return
@@ -105,117 +147,120 @@ function handleDismiss() {
         : 'overflow-hidden rounded-xl border border-gold-500/25 bg-mystic-900/70 p-4 shadow-2xl shadow-mystic-900/40 sm:p-5'
     "
     aria-label="Account"
+    :aria-busy="isLoading || isSaving"
   >
-    <div
-      v-if="!embedded"
-      class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-300/60 to-transparent"
-      aria-hidden="true"
-    />
-    <div v-if="isLoading" class="relative flex items-center justify-between gap-4">
+    <div v-if="isLoading" class="flex items-center justify-between gap-4">
       <div>
         <p class="font-display text-sm uppercase tracking-widest text-gold-300">Saved Readings</p>
-        <p class="mt-1 text-sm text-mystic-400">Checking your saved readings...</p>
+        <p class="mt-1 text-sm text-mystic-300">Checking your saved readings...</p>
       </div>
-      <div class="h-9 w-24 animate-pulse rounded-lg bg-mystic-700/40" aria-hidden="true" />
+      <div class="h-11 w-24 animate-pulse rounded-lg bg-mystic-700/50" aria-hidden="true" />
     </div>
 
-    <div v-else-if="account" class="relative flex flex-col gap-4">
-      <div class="flex items-start justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <img
-            src="/cards/back.png"
-            alt=""
-            class="h-16 w-[2.84375rem] rounded-md border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
-            aria-hidden="true"
-          />
-          <div>
-            <p class="font-display text-sm uppercase tracking-widest text-gold-300">
-              Saved Readings
-            </p>
-            <p class="mt-1 text-base font-medium text-mystic-100">
-              {{ account.displayName || 'Browser archive' }}
-            </p>
-            <p class="mt-0.5 text-sm text-mystic-400">{{ account.email }}</p>
-          </div>
+    <div v-else-if="account" class="flex flex-col gap-5">
+      <div class="flex items-start gap-4">
+        <img
+          src="/cards/back.png"
+          alt=""
+          class="h-14 w-[2.4375rem] shrink-0 rounded-md border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
+          aria-hidden="true"
+        />
+        <div class="min-w-0 flex-1">
+          <p class="font-display text-sm uppercase tracking-widest text-gold-300">Saved Readings</p>
+          <p class="mt-1 truncate text-base font-medium text-mystic-100">
+            {{ account.displayName || 'Browser archive' }}
+          </p>
+          <p class="truncate text-sm text-mystic-300">{{ account.email }}</p>
         </div>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm leading-6 text-mystic-300">
+          {{
+            canRestore
+              ? 'This archive is connected to this browser session and can be restored by email.'
+              : 'This archive is connected to this browser session.'
+          }}
+        </p>
         <UButton
           type="button"
-          variant="ghost"
+          variant="outline"
           color="neutral"
-          size="sm"
+          size="md"
+          class="min-h-11 w-full shrink-0 justify-center sm:w-auto"
           :disabled="isSaving"
           @click="emit('logout')"
         >
           Sign out
         </UButton>
       </div>
-      <p class="text-sm text-mystic-400">
-        {{
-          canRestore
-            ? 'This archive is connected to this browser session and can be restored by email.'
-            : 'This archive is connected to this browser session.'
-        }}
-      </p>
 
-      <div v-if="hasReadings" class="border-t border-mystic-700/50 pt-4">
+      <div v-if="hasReadings" class="border-t border-mystic-700/50 pt-5">
         <div class="mb-3 flex items-center justify-between gap-3">
-          <p class="font-display text-xs uppercase tracking-widest text-mystic-400">
+          <h3 class="font-display text-xs uppercase tracking-widest text-mystic-300">
             Recent readings
-          </p>
+          </h3>
           <span
-            class="rounded-full border border-mystic-700/60 px-2 py-0.5 text-xs text-mystic-400"
+            class="rounded-full border border-mystic-600/70 px-2.5 py-0.5 text-xs tabular-nums text-mystic-200"
+            :aria-label="`${readings.length} saved readings`"
           >
             {{ readings.length }}
           </span>
         </div>
-        <div class="grid gap-2 sm:grid-cols-2">
-          <NuxtLink
-            v-for="reading in readings"
-            :key="reading.id"
-            :to="`/r/${reading.shareSlug}`"
-            class="group rounded-lg border border-mystic-700/50 bg-mystic-800/45 px-3 py-2.5 transition-colors hover:border-gold-500/40 hover:bg-mystic-800/75 focus:outline-none focus:ring-2 focus:ring-gold-500/40"
-          >
-            <p class="truncate text-sm font-medium text-mystic-100">{{ reading.question }}</p>
-            <p class="mt-1 text-xs text-mystic-400 group-hover:text-gold-300">
-              {{ reading.spreadName }}
-            </p>
-          </NuxtLink>
-        </div>
+        <ul class="grid gap-2 sm:grid-cols-2">
+          <li v-for="reading in readings" :key="reading.id">
+            <NuxtLink
+              :to="`/r/${reading.shareSlug}`"
+              class="group flex min-h-11 flex-col gap-1 rounded-lg border border-mystic-700/60 bg-mystic-800/50 px-3.5 py-3 transition-colors duration-200 hover:border-gold-500/40 hover:bg-mystic-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-300 focus-visible:ring-offset-2 focus-visible:ring-offset-mystic-900"
+            >
+              <span class="line-clamp-2 text-sm font-medium leading-5 text-mystic-100">
+                {{ reading.question }}
+              </span>
+              <span class="flex flex-wrap items-center gap-x-2 text-xs text-mystic-300">
+                <span class="text-gold-300">{{ reading.spreadName }}</span>
+                <span aria-hidden="true">·</span>
+                <time :datetime="reading.createdAt">{{
+                  formatReadingDate(reading.createdAt)
+                }}</time>
+              </span>
+            </NuxtLink>
+          </li>
+        </ul>
       </div>
 
-      <p v-else class="border-t border-mystic-700/50 pt-4 text-sm text-mystic-400">
+      <p v-else class="border-t border-mystic-700/50 pt-5 text-sm text-mystic-300">
         Your completed readings will appear here.
       </p>
     </div>
 
-    <div v-else class="relative">
+    <div v-else>
       <button
         v-if="!guestExpanded"
         type="button"
-        class="flex min-h-16 w-full items-center justify-between gap-4 text-left focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:ring-offset-4 focus:ring-offset-mystic-900"
+        class="flex min-h-16 w-full items-center justify-between gap-4 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-300 focus-visible:ring-offset-4 focus-visible:ring-offset-mystic-900"
         aria-controls="guest-account-panel"
         :aria-expanded="guestExpanded"
         @click="guestExpanded = true"
       >
-        <span class="flex items-center gap-3">
+        <span class="flex min-w-0 items-center gap-3">
           <img
             src="/cards/back.png"
             alt=""
-            class="h-12 w-[2.125rem] rounded-md border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
+            class="h-12 w-[2.125rem] shrink-0 rounded-md border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
             aria-hidden="true"
           />
-          <span>
+          <span class="min-w-0">
             <span class="flex flex-wrap items-center gap-2">
               <span class="font-display text-sm uppercase tracking-widest text-gold-300">
                 Save your readings
               </span>
               <span
-                class="rounded-full border border-mystic-700/60 px-2 py-0.5 text-[10px] uppercase tracking-widest text-mystic-400"
+                class="rounded-full border border-mystic-600/70 px-2 py-0.5 text-[11px] uppercase tracking-widest text-mystic-300"
               >
                 Optional
               </span>
             </span>
-            <span class="mt-1 block text-sm text-mystic-300">
+            <span class="mt-1 block text-sm leading-6 text-mystic-200">
               Keep an archive in this browser and restore it by email.
             </span>
           </span>
@@ -223,43 +268,38 @@ function handleDismiss() {
         <span class="shrink-0 text-sm font-medium text-gold-300">Set up</span>
       </button>
 
-      <div v-else id="guest-account-panel" class="flex flex-col gap-4">
-        <div class="flex items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <img
-              src="/cards/back.png"
-              alt=""
-              class="h-16 w-[2.84375rem] rounded-md border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
-              aria-hidden="true"
-            />
-            <div>
-              <p class="font-display text-sm uppercase tracking-widest text-gold-300">
-                Saved Readings
-              </p>
-              <p class="mt-1 text-sm leading-relaxed text-mystic-300">
-                Keep completed readings tied to this browser.
-              </p>
-            </div>
+      <div v-else id="guest-account-panel" class="flex flex-col gap-5">
+        <div class="flex items-start gap-4">
+          <img
+            src="/cards/back.png"
+            alt=""
+            class="h-14 w-[2.4375rem] shrink-0 rounded-md border border-gold-500/30 object-cover shadow-lg shadow-gold-500/10"
+            aria-hidden="true"
+          />
+          <div class="min-w-0">
+            <p class="font-display text-sm uppercase tracking-widest text-gold-300">
+              Saved Readings
+            </p>
+            <p class="mt-1 text-sm leading-6 text-mystic-200">
+              Restore them on any device with your email.
+            </p>
           </div>
-          <UButton type="button" variant="ghost" color="neutral" size="sm" @click="handleDismiss">
-            Maybe later
-          </UButton>
         </div>
 
         <div
           v-if="canRestore"
-          class="grid grid-cols-2 gap-2 rounded-lg border border-mystic-700/50 bg-mystic-950/35 p-1"
+          class="grid grid-cols-2 gap-1 rounded-xl border border-mystic-700/60 bg-mystic-950/50 p-1"
           role="group"
           aria-label="Reading archive actions"
         >
           <button
             type="button"
-            class="min-h-10 rounded-md px-3 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500/40"
-            :class="
+            :class="[
+              controlClass,
               mode === 'create'
                 ? 'bg-gold-500 text-mystic-950'
-                : 'text-mystic-300 hover:bg-mystic-800/70 hover:text-mystic-100'
-            "
+                : 'text-mystic-200 hover:bg-mystic-800/70 hover:text-mystic-100',
+            ]"
             :aria-pressed="mode === 'create'"
             @click="mode = 'create'"
           >
@@ -267,12 +307,12 @@ function handleDismiss() {
           </button>
           <button
             type="button"
-            class="min-h-10 rounded-md px-3 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500/40"
-            :class="
+            :class="[
+              controlClass,
               mode === 'restore'
                 ? 'bg-gold-500 text-mystic-950'
-                : 'text-mystic-300 hover:bg-mystic-800/70 hover:text-mystic-100'
-            "
+                : 'text-mystic-200 hover:bg-mystic-800/70 hover:text-mystic-100',
+            ]"
             :aria-pressed="mode === 'restore'"
             @click="mode = 'restore'"
           >
@@ -282,71 +322,87 @@ function handleDismiss() {
 
         <form
           v-if="mode === 'create' || !canRestore"
-          class="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+          class="flex flex-col gap-4"
           @submit.prevent="saveAccount"
         >
-          <div class="grid gap-1.5">
-            <label for="archive-email" class="text-xs font-medium text-mystic-300">Email</label>
-            <UInput
-              id="archive-email"
-              v-model="email"
-              type="email"
-              autocomplete="email"
-              inputmode="email"
-              placeholder="you@example.com"
-              :disabled="isSaving"
-            />
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-1.5">
+              <label for="archive-email" class="text-sm font-medium text-mystic-100">Email</label>
+              <UInput
+                id="archive-email"
+                v-model="email"
+                type="email"
+                autocomplete="email"
+                inputmode="email"
+                placeholder="you@example.com"
+                size="lg"
+                class="w-full"
+                :disabled="isSaving"
+              />
+            </div>
+            <div class="grid gap-1.5">
+              <label for="archive-name" class="text-sm font-medium text-mystic-100">Name</label>
+              <UInput
+                id="archive-name"
+                v-model="displayName"
+                autocomplete="name"
+                placeholder="Optional"
+                size="lg"
+                class="w-full"
+                :disabled="isSaving"
+              />
+            </div>
           </div>
-          <div class="grid gap-1.5">
-            <label for="archive-name" class="text-xs font-medium text-mystic-300">Name</label>
-            <UInput
-              id="archive-name"
-              v-model="displayName"
-              autocomplete="name"
-              placeholder="Optional"
-              :disabled="isSaving"
-            />
-          </div>
+          <p class="-mt-1 text-xs leading-5 text-mystic-300">
+            Use the same email later to restore this archive.
+          </p>
           <UButton
             type="submit"
+            size="lg"
+            block
             :loading="isSaving"
             :disabled="isSaving || !emailLooksValid"
-            class="justify-center"
+            :class="primaryClass"
           >
             Save
           </UButton>
         </form>
 
-        <form v-else-if="canRestore" class="grid gap-3" @submit.prevent="verifyLoginCode">
-          <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-            <div class="grid gap-1.5">
-              <label for="archive-login-email" class="text-xs font-medium text-mystic-300">
-                Archive email
-              </label>
-              <UInput
-                id="archive-login-email"
-                v-model="loginEmail"
-                type="email"
-                autocomplete="email"
-                inputmode="email"
-                placeholder="you@example.com"
-                :disabled="isSaving"
-              />
-            </div>
-            <UButton
-              type="button"
-              :loading="isSaving"
-              :disabled="isSaving || !loginEmailLooksValid"
-              class="justify-center"
-              @click="requestLoginCode"
-            >
-              Send code
-            </UButton>
+        <form v-else-if="canRestore" class="flex flex-col gap-4" @submit.prevent="verifyLoginCode">
+          <div class="grid gap-1.5">
+            <label for="archive-login-email" class="text-sm font-medium text-mystic-100">
+              Archive email
+            </label>
+            <UInput
+              id="archive-login-email"
+              v-model="loginEmail"
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              placeholder="you@example.com"
+              size="lg"
+              class="w-full"
+              :disabled="isSaving"
+            />
           </div>
+          <UButton
+            type="button"
+            size="lg"
+            block
+            :loading="isSaving"
+            :disabled="isSaving || !loginEmailLooksValid"
+            :class="primaryClass"
+            @click="requestLoginCode"
+          >
+            Send code
+          </UButton>
 
-          <div v-if="loginCodeRequested" class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+          <div
+            v-if="loginCodeRequested"
+            class="flex flex-col gap-4 border-t border-mystic-700/50 pt-4"
+          >
             <div class="grid gap-1.5">
-              <label for="archive-login-code" class="text-xs font-medium text-mystic-300">
+              <label for="archive-login-code" class="text-sm font-medium text-mystic-100">
                 Verification code
               </label>
               <UInput
@@ -356,49 +412,56 @@ function handleDismiss() {
                 inputmode="numeric"
                 maxlength="6"
                 placeholder="6 digits"
+                size="lg"
+                class="w-full"
                 :disabled="isSaving"
               />
             </div>
             <UButton
               type="submit"
+              size="lg"
+              block
               :loading="isSaving"
               :disabled="isSaving || !loginEmailLooksValid || !loginCodeLooksValid"
-              class="justify-center"
+              :class="primaryClass"
             >
               Verify
             </UButton>
           </div>
         </form>
+
+        <div class="-mt-2 flex justify-center">
+          <UButton
+            type="button"
+            variant="link"
+            color="neutral"
+            size="md"
+            class="min-h-11 px-3 text-mystic-200 hover:text-mystic-100"
+            @click="handleDismiss"
+          >
+            Maybe later
+          </UButton>
+        </div>
       </div>
     </div>
 
-    <TransitionGroup name="fade">
+    <div aria-live="polite" class="mt-4 empty:hidden">
       <p
         v-if="message"
         key="message"
-        class="mt-3 text-sm text-green-300"
+        class="flex items-start gap-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-sm leading-6 text-emerald-100"
         role="status"
-        aria-live="polite"
       >
         {{ message }}
       </p>
-      <p v-if="error" key="error" class="mt-3 text-sm text-red-300" role="alert">
+      <p
+        v-if="error"
+        key="error"
+        class="flex items-start gap-2 rounded-lg border border-rose-400/35 bg-rose-400/10 px-3 py-2 text-sm leading-6 text-rose-100"
+        role="alert"
+      >
         {{ error }}
       </p>
-    </TransitionGroup>
+    </div>
   </section>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-</style>

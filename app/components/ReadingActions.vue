@@ -11,6 +11,7 @@ withDefaults(
     emailMessage?: string | null
     emailError?: string | null
     newReadingHref?: string
+    showNewReading?: boolean
   }>(),
   {
     shareUrl: null,
@@ -20,6 +21,7 @@ withDefaults(
     emailMessage: null,
     emailError: null,
     newReadingHref: undefined,
+    showNewReading: true,
   },
 )
 
@@ -50,60 +52,75 @@ function handleNewReading() {
   emailAddress.value = ''
   emit('new-reading')
 }
+
+// Shared sizing so every action in the group has the same 44px touch target.
+const actionClass = 'h-11 justify-center px-5 text-sm font-medium'
 </script>
 
 <template>
   <div
-    class="rounded-xl border border-mystic-600/20 bg-mystic-900/40 p-4 sm:p-5 flex flex-col gap-4"
+    class="flex flex-col gap-5 rounded-2xl border border-mystic-600/25 bg-mystic-900/40 p-5 sm:p-6"
     aria-label="Reading actions"
   >
-    <div class="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+    <div class="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
       <UButton
         v-if="shareUrl"
         variant="solid"
         color="primary"
+        size="lg"
         :disabled="isReplaying"
-        class="w-full justify-center sm:w-auto"
+        :class="[
+          actionClass,
+          '!border-gold-500 !bg-gold-500 !text-mystic-900 hover:!bg-gold-400 col-span-2 sm:col-span-1 sm:min-w-36',
+        ]"
         @click="emit('share')"
       >
         Share
       </UButton>
       <UButton
         variant="outline"
-        color="primary"
+        color="neutral"
+        size="lg"
         :loading="isReplaying"
         :disabled="isReplaying"
-        class="w-full justify-center sm:w-auto"
+        :class="actionClass"
         @click="emit('replay')"
       >
         {{ isReplaying ? 'Replaying...' : 'Replay' }}
       </UButton>
-      <UButton
-        v-if="newReadingHref"
-        variant="outline"
-        color="neutral"
-        :to="newReadingHref"
-        class="w-full justify-center sm:w-auto"
-      >
-        New Reading
-      </UButton>
-      <UButton
-        v-else
-        variant="outline"
-        color="neutral"
-        :disabled="isReplaying"
-        class="w-full justify-center sm:w-auto"
-        @click="handleNewReading"
-      >
-        New Reading
-      </UButton>
+      <template v-if="showNewReading">
+        <UButton
+          v-if="newReadingHref"
+          variant="outline"
+          color="neutral"
+          size="lg"
+          :to="newReadingHref"
+          :class="actionClass"
+        >
+          New Reading
+        </UButton>
+        <UButton
+          v-else
+          variant="outline"
+          color="neutral"
+          size="lg"
+          :disabled="isReplaying"
+          :class="actionClass"
+          @click="handleNewReading"
+        >
+          New Reading
+        </UButton>
+      </template>
     </div>
 
-    <div v-if="shareUrl && emailEnabled" class="flex flex-col gap-2 sm:flex-row sm:items-end">
-      <div class="grid flex-1 gap-1.5">
-        <label for="reading-email" class="text-xs font-medium text-mystic-300">
-          Send a copy by email
-        </label>
+    <div
+      v-if="shareUrl && emailEnabled"
+      class="flex flex-col gap-3 border-t border-mystic-600/20 pt-5"
+    >
+      <label for="reading-email" class="text-xs font-medium tracking-wide text-mystic-300">
+        Send a copy by email
+      </label>
+      <div class="flex flex-col gap-3 sm:flex-row">
         <UInput
           id="reading-email"
           v-model="emailAddress"
@@ -112,18 +129,23 @@ function handleNewReading() {
           inputmode="email"
           placeholder="you@example.com"
           aria-label="Send this reading by email"
+          size="lg"
+          class="flex-1"
           :disabled="isSendingEmail"
           @keyup.enter="handleEmailRequest"
         />
+        <UButton
+          variant="outline"
+          color="neutral"
+          size="lg"
+          :loading="isSendingEmail"
+          :disabled="isSendingEmail || !emailLooksValid"
+          :class="[actionClass, 'sm:min-w-28']"
+          @click="handleEmailRequest"
+        >
+          Email
+        </UButton>
       </div>
-      <UButton
-        :loading="isSendingEmail"
-        :disabled="isSendingEmail || !emailLooksValid"
-        class="justify-center sm:min-w-24"
-        @click="handleEmailRequest"
-      >
-        Email
-      </UButton>
     </div>
 
     <TransitionGroup name="fade">
@@ -163,5 +185,12 @@ function handleNewReading() {
 .fade-leave-to {
   opacity: 0;
   transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: none;
+  }
 }
 </style>

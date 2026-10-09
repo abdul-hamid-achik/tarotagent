@@ -132,9 +132,10 @@ async function handleEmailRequest(email: string) {
 </script>
 
 <template>
-  <div class="flex w-full max-w-5xl flex-col items-center gap-6 sm:gap-8">
+  <div class="flex w-full max-w-5xl flex-col items-center gap-8 sm:gap-10">
     <ReadingMetaCard
       badge="Saved Reading"
+      :show-saved-badge="false"
       :spread-name="spreadName"
       :question="question"
       :spread-description="spreadDescription"
@@ -150,7 +151,7 @@ async function handleEmailRequest(email: string) {
       :instant-reveal="!isStreaming"
     />
 
-    <div class="flex w-full max-w-3xl flex-col gap-4">
+    <div class="flex w-full max-w-3xl flex-col gap-5">
       <ReadingDisplay :text="readingText" :is-streaming="isStreaming" heading="Saved Reading" />
 
       <ReadingActions
@@ -160,11 +161,34 @@ async function handleEmailRequest(email: string) {
         :share-message="shareMessage.message.value"
         :email-message="emailMessage.message.value"
         :email-error="emailError.message.value"
-        new-reading-href="/"
+        :show-new-reading="false"
         @share="handleShare"
         @replay="handleReplay"
         @email-request="handleEmailRequest"
       />
+
+      <section
+        class="flex flex-col items-start gap-4 rounded-2xl border border-gold-500/20 bg-gradient-to-br from-gold-500/[0.07] to-transparent p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+        aria-labelledby="share-cta-heading"
+      >
+        <div class="flex flex-col gap-1">
+          <h2 id="share-cta-heading" class="font-display text-lg text-gold-300">
+            Have a question of your own?
+          </h2>
+          <p class="max-w-prose text-sm leading-relaxed text-mystic-300">
+            Pick a spread, draw the cards and get a reading written for what you are asking.
+          </p>
+        </div>
+        <UButton
+          to="/"
+          variant="outline"
+          color="primary"
+          size="lg"
+          class="h-11 shrink-0 justify-center px-5"
+        >
+          Get your own reading
+        </UButton>
+      </section>
     </div>
   </div>
 </template>

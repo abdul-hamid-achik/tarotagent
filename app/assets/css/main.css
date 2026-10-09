@@ -20,9 +20,10 @@
   --font-family-body: 'DM Sans', sans-serif;
 }
 
+/* `clip` (not `hidden`) so sticky descendants such as the header keep working. */
 html,
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -162,6 +163,13 @@ body {
 .stars-bg > * {
   position: relative;
   z-index: 1;
+}
+
+/* Floating header: beats `.stars-bg > *` (same-origin specificity, unlayered). */
+.stars-bg > .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
 }
 
 .card-back-mystic {

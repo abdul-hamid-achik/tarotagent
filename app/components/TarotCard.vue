@@ -8,7 +8,7 @@ const props = withDefaults(
     revealed?: boolean
     delay?: number
     instantReveal?: boolean
-    size?: 'default' | 'compact' | 'row'
+    size?: 'default' | 'compact' | 'row' | 'mini'
     showLabel?: boolean
   }>(),
   {
@@ -22,12 +22,19 @@ const props = withDefaults(
 
 const cardSizeClasses = computed(() => {
   if (props.size === 'compact') return 'w-24 aspect-[32/45] sm:w-32'
-  if (props.size === 'row') return 'w-24 aspect-[32/45] sm:w-32 lg:w-40'
+  if (props.size === 'mini') return 'w-20 aspect-[32/45] sm:w-24'
+  if (props.size === 'row') return 'w-24 aspect-[32/45] sm:w-32'
   return 'w-32 aspect-[32/45] sm:w-40'
 })
 
 const labelSizeClasses = computed(() =>
-  props.size === 'compact' ? 'text-xs sm:text-sm' : 'text-sm',
+  props.size === 'compact' || props.size === 'mini' ? 'text-xs sm:text-sm' : 'text-sm',
+)
+
+// Court and ace cards are named "Queen of Wands", "Ace of Cups": repeating the
+// rank word above the name adds nothing, so only show the numeral when it is new.
+const showNumeral = computed(
+  () => !props.card.name.toLowerCase().includes(props.card.numeral.toLowerCase()),
 )
 
 const flipped = ref(false)
@@ -103,25 +110,23 @@ onUnmounted(() => {
 
     <div
       v-if="showLabel"
-      class="text-center transition-opacity duration-500"
+      class="flex flex-col items-center text-center transition-opacity duration-500"
       :class="[flipped ? 'opacity-100' : 'opacity-0', labelSizeClasses]"
       :aria-hidden="!flipped"
     >
-      <p class="font-display text-gold-400">
-        {{ card.numeral }}
+      <!-- The numeral line is always rendered so names align across a row even when hidden. -->
+      <p class="font-display text-gold-400 leading-tight" :aria-hidden="!showNumeral">
+        {{ showNumeral ? card.numeral : ' ' }}
       </p>
-      <p class="font-display text-mystic-100 font-semibold">
+      <p class="font-display text-mystic-100 font-semibold leading-snug">
         {{ card.name }}
       </p>
-      <UBadge
+      <span
         v-if="card.reversed && flipped"
-        color="neutral"
-        variant="subtle"
-        size="xs"
-        class="mt-1"
+        class="mt-1.5 inline-flex items-center rounded-full border border-mystic-500/50 bg-mystic-900/70 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider text-mystic-200"
       >
         Reversed
-      </UBadge>
+      </span>
     </div>
   </div>
 </template>

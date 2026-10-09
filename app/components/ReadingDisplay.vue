@@ -14,68 +14,102 @@ withDefaults(
 </script>
 
 <template>
-  <div
+  <article
     v-if="text || isStreaming || error"
-    class="relative rounded-xl border border-mystic-600/30 bg-mystic-800/60 backdrop-blur-sm p-5 sm:p-8 reading-container"
+    class="reading-panel relative rounded-2xl border border-mystic-600/25 bg-mystic-800/50 px-5 py-7 sm:px-10 sm:py-10"
     :aria-busy="isStreaming"
   >
-    <div
-      class="absolute inset-0 rounded-xl opacity-5 pointer-events-none bg-gradient-to-br from-gold-500/20 via-transparent to-mystic-500/20"
-    ></div>
-
-    <div
-      class="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-gold-500/30 rounded-tl-xl"
-    ></div>
-    <div
-      class="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-gold-500/30 rounded-tr-xl"
-    ></div>
-    <div
-      class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-gold-500/30 rounded-bl-xl"
-    ></div>
-    <div
-      class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-gold-500/30 rounded-br-xl"
-    ></div>
-
-    <div class="relative z-10">
-      <h3 class="font-display text-gold-400 text-lg mb-4 flex items-center gap-2">
-        <span class="text-gold-500/50" aria-hidden="true">&#10022;</span>
+    <header class="mb-6 flex items-center justify-between gap-4">
+      <h3 class="flex items-center gap-3 font-display text-lg text-gold-300 sm:text-xl">
+        <span class="h-px w-6 bg-gold-500/50" aria-hidden="true" />
         {{ heading }}
-        <span class="text-gold-500/50" aria-hidden="true">&#10022;</span>
       </h3>
-
-      <p
-        v-if="error"
-        class="mb-4 rounded-lg border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-200"
-        role="alert"
+      <span
+        v-if="isStreaming"
+        class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-mystic-400"
+        aria-hidden="true"
       >
-        {{ error }}
-      </p>
+        <span class="writing-dots" aria-hidden="true"><i /><i /><i /></span>
+        Writing
+      </span>
+    </header>
 
-      <div
-        v-if="text || isStreaming"
-        class="text-mystic-200 leading-relaxed whitespace-pre-wrap text-sm sm:text-base"
-        aria-live="polite"
-        aria-atomic="false"
-      >
-        {{ text
-        }}<span v-if="isStreaming" class="inline-flex ml-1" aria-hidden="true"
-          ><span class="animate-pulse text-gold-500">...</span></span
-        >
-      </div>
+    <p
+      v-if="error"
+      class="mb-6 rounded-lg border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+      role="alert"
+    >
+      {{ error }}
+    </p>
+
+    <div
+      v-if="text || isStreaming"
+      class="reading-body mx-auto max-w-[65ch] whitespace-pre-wrap text-[15px] leading-[1.8] text-mystic-100 sm:text-[17px] sm:leading-[1.85]"
+      aria-live="polite"
+      aria-atomic="false"
+    >
+      {{ text }}
     </div>
-  </div>
+  </article>
 </template>
 
 <style scoped>
-.reading-container {
+.reading-panel {
   box-shadow:
-    0 0 30px rgba(53, 53, 122, 0.1),
-    inset 0 0 60px rgba(212, 168, 83, 0.02);
+    0 24px 60px -30px rgba(7, 7, 25, 0.8),
+    inset 0 1px 0 rgba(212, 168, 83, 0.06);
+}
+
+/* Drop cap on the first letter of the reading. */
+.reading-body::first-letter {
+  float: left;
+  margin: 0.08em 0.12em 0 0;
+  font-family: var(--font-family-display);
+  font-size: 3.4em;
+  line-height: 0.85;
+  color: var(--color-gold-400);
+}
+
+.writing-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.writing-dots i {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: currentColor;
+  color: #d4a853;
+  opacity: 0.3;
+  animation: writing-dot 1.2s ease-in-out infinite;
+}
+
+.writing-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.writing-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes writing-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reading-container {
-    box-shadow: 0 0 10px rgba(53, 53, 122, 0.1);
+  .writing-dots i {
+    animation: none;
+    opacity: 0.7;
   }
 }
 </style>
