@@ -136,6 +136,7 @@ async function handleEmailRequest(email: string) {
     <ReadingMetaCard
       badge="Saved Reading"
       :show-saved-badge="false"
+      heading-tag="h1"
       :spread-name="spreadName"
       :question="question"
       :spread-description="spreadDescription"

@@ -8,12 +8,14 @@ withDefaults(
     shareUrl?: string | null
     badge?: string
     showSavedBadge?: boolean
+    headingTag?: 'h1' | 'h2'
   }>(),
   {
     shareSlug: null,
     shareUrl: null,
     badge: undefined,
     showSavedBadge: true,
+    headingTag: 'h2',
   },
 )
 </script>
@@ -35,12 +37,13 @@ withDefaults(
           <span class="normal-case tracking-wide text-mystic-400">Ref {{ shareSlug }}</span>
         </template>
       </p>
-      <h2
+      <component
+        :is="headingTag"
         id="reading-meta-heading"
         class="text-balance font-display text-xl leading-snug text-gold-300 sm:text-2xl"
       >
         {{ question }}
-      </h2>
+      </component>
       <p class="text-sm leading-relaxed text-mystic-300">
         {{ spreadDescription }}
       </p>

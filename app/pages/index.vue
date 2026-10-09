@@ -264,12 +264,12 @@ function closeAccountModal() {
           class="absolute left-1/2 top-0 z-10 h-[5.9rem] w-[4.2rem] -translate-x-1/2 rounded-lg border border-gold-400/40 object-cover shadow-2xl shadow-gold-500/15 sm:h-[9.5rem] sm:w-[6.75rem]"
         />
       </div>
-      <h2
+      <h1
         class="font-display font-semibold tracking-[0.06em] text-mystic-100"
         :class="hasReading ? 'text-xl sm:text-2xl' : 'text-3xl leading-tight sm:text-6xl'"
       >
         Consult the Cards
-      </h2>
+      </h1>
       <p
         v-if="!hasReading"
         class="mx-auto mt-4 max-w-md text-base leading-relaxed text-mystic-300 sm:mt-5 sm:text-lg"

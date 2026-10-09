@@ -15,9 +15,9 @@ const currentYear = new Date().getFullYear()
           class="shrink-0 rounded-sm focus:outline-none focus:ring-2 focus:ring-gold-500/60 focus:ring-offset-4 focus:ring-offset-mystic-900"
           aria-label="Tarot Agent home"
         >
-          <h1 class="font-display text-xl font-semibold tracking-wide text-gold-500 sm:text-2xl">
-            <span class="relative z-10">Tarot Agent</span>
-          </h1>
+          <span class="font-display text-xl font-semibold tracking-wide text-gold-500 sm:text-2xl">
+            Tarot Agent
+          </span>
         </NuxtLink>
         <div id="header-actions" class="flex min-w-0 items-center justify-end"></div>
       </div>

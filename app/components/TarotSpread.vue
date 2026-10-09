@@ -164,22 +164,25 @@ const labelClasses =
           </div>
         </div>
         <div
-          class="mt-2 flex max-w-[11rem] flex-col items-center gap-1 text-center transition-opacity duration-500"
+          class="mt-2 flex max-w-[11rem] flex-col items-center gap-2.5 text-center transition-opacity duration-500"
           :class="revealed ? 'opacity-100' : 'opacity-0'"
         >
-          <p class="text-[11px] leading-snug text-mystic-100">
-            <span class="font-display uppercase tracking-widest text-mystic-400">{{
-              positionLabel(0)
-            }}</span>
-            <span class="font-display font-semibold"> · {{ cards[0]?.name }}</span>
-          </p>
-          <p class="text-[11px] leading-snug text-mystic-100">
-            <span class="font-display uppercase tracking-widest text-mystic-400">{{
-              positionLabel(1)
-            }}</span>
-            <span class="font-display font-semibold"> · {{ cards[1]?.name }}</span>
-            <span v-if="cards[1]?.reversed" class="text-mystic-400"> · Reversed</span>
-          </p>
+          <div v-for="index in [0, 1]" :key="index" class="flex flex-col items-center">
+            <p
+              class="font-display text-[10px] uppercase leading-tight tracking-widest text-mystic-400 sm:text-[11px]"
+            >
+              {{ positionLabel(index) }}
+            </p>
+            <p class="font-display text-xs font-semibold leading-snug text-mystic-100 sm:text-sm">
+              {{ cards[index]?.name }}
+            </p>
+            <span
+              v-if="cards[index]?.reversed"
+              class="mt-1 inline-flex items-center rounded-full border border-mystic-500/50 bg-mystic-900/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-mystic-200"
+            >
+              Reversed
+            </span>
+          </div>
         </div>
       </div>
 
